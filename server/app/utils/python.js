@@ -2,5 +2,6 @@ const py = require('./python/py');
 
 module.exports = {
   test: py('test'),
-  moku: py('moku'),
+  mokuOn: py('mokuOn'),
+  mokuOff: py('mokuOff'),
 };

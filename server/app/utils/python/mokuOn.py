@@ -5,7 +5,7 @@ import sys
 m = Moku.get_by_name('Moku')
 i = Phasemeter()
 
-m.deploy_instrument(i, use_external=True)
+m.deploy_instrument(i)
 
 def main(): # ch (int), power (dbm), freq (mHz)
     ch = int(sys.argv[1])
@@ -17,7 +17,7 @@ def main(): # ch (int), power (dbm), freq (mHz)
 
     freq = float(sys.argv[3]) * (10 ** 6)
 
-    data = i.gen_sinewave(ch, v, freq, phase=0.0, phase_locked=False)
+    i.gen_sinewave(ch, v, freq)
     m.close()
     print 'done'
 
