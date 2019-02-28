@@ -8,19 +8,21 @@ const ping = async () => {
 export default class extends Component {
   constructor(props) {
     super(props);
-    this.state = { response: 'hi' };
+    this.state = { response: '' };
 
     this.clickme = this.clickme.bind(this);
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     setInterval(ping, 1000);
+    await post('/api/connect');
+    this.setState({ response: 'hi' });
   }
 
   async clickme() {
     const {
       data: { power },
-    } = await get('/api/test', { params: { channel: 2, dbm: 5, frequency: 150 } });
+    } = await get('/api/gen', { params: { channel: 2, dbm: 5, frequency: 150 } });
     this.setState({ response: power });
   }
 

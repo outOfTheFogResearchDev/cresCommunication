@@ -2,6 +2,7 @@ const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const api = require('./api/index');
+const moku = require('./utils/moku');
 
 const config = process.env.NODE_ENV === 'production' ? process.env : require('../../config/config');
 
@@ -30,6 +31,7 @@ app.use('/api', api);
 let ping = false;
 
 const gracefulShutdown = async () => {
+  await moku.gracefulShutdown();
   process.exit();
 };
 
