@@ -5,20 +5,22 @@ let moku;
 const pythonPort = axios.create({ baseURL: 'http://127.0.0.1:5000' });
 
 module.exports = {
-  connect: () =>
-    new Promise(resolve => {
+  connected: false,
+  connect() {
+    return new Promise(resolve => {
       moku = spawn('python.exe', [`${__dirname}/python/mokuConnection.py`]);
-      let first = true;
       moku.stdout.on('data', data => {
-        if (first) {
-          first = false;
+        if (!this.connected) {
+          this.connected = true;
           resolve(data);
         }
       });
-    }),
+    });
+  },
   genPhase: args => pythonPort('/gen', { params: args }),
-  gracefulShutdown: async () => {
+  async gracefulShutdown() {
     await pythonPort('/shutdown');
+    this.connected = false;
     moku.kill();
     moku = null;
   },

@@ -4,14 +4,13 @@
   "description": "",
   "main": "server/index.js",
   "scripts": {
-    "test": "set NODE_ENV=test&& jest",
-    "start": "node server/index.js",
-    "start-dev": "set NODE_ENV=development&&nodemon server/index.js",
+    "test": "set NODE_ENV=test&&jest",
+    "start": "ping 192.168.1.133&moku list&&node server/index.js",
     "open": "start chrome /max --app=http://localhost:3330",
     "cpp-build": "node-gyp rebuild",
     "react-dev": "webpack -d --watch --optimize-minimize --optimize-occurrence-order --optimize-dedupe --config webpack.config.js",
     "deployment-build": "webpack -p --progress --optimize-minimize --optimize-occurrence-order --optimize-dedupe --config webpack.config.js",
-    "setup": "npm i && npm run deployment-build",
+    "setup": "npm i&&npm run deployment-build",
     "lint": "eslint .",
     "lint-fix": "eslint . --fix"
   },
@@ -55,7 +54,6 @@
     "eslint-plugin-import": "^2.15.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-react": "^7.12.4",
-    "nodemon": "^1.18.9",
     "webpack": "^4.29.0",
     "webpack-cli": "^3.1.0"
   },

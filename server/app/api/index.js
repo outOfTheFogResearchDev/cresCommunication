@@ -6,7 +6,7 @@ const { ms } = require('../utils/time');
 const api = Router();
 
 api.post('/connect', async (req, res) => {
-  await moku.connect();
+  if (!moku.connected) await moku.connect();
   res.sendStatus(201);
 });
 
