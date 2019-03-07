@@ -3,6 +3,8 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const api = require('./api/index');
 const moku = require('./utils/moku');
+const telnet = require('./utils/telnet');
+const { ms } = require('./utils/time');
 
 const config = process.env.NODE_ENV === 'production' ? process.env : require('../../config/config');
 
@@ -31,7 +33,9 @@ app.use('/api', api);
 let ping = false;
 
 const gracefulShutdown = async () => {
-  await moku.gracefulShutdown();
+  const gracefulMoku = Promise.race(moku.gracefulShutdown(), ms(2000));
+  const gracefulTelnet = Promise.race(telnet.disconnect(), ms(2000));
+  await Promise.all(gracefulMoku, gracefulTelnet);
   process.exit();
 };
 

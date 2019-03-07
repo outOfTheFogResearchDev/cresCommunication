@@ -1,25 +1,24 @@
 const { Router } = require('express');
 const moku = require('../utils/moku');
-const { setAnalyzer, getPower, resetAnalyzer } = require('../utils/cpp');
-const { ms } = require('../utils/time');
+const telnet = require('../utils/telnet');
+const genPoints = require('../utils/algorithms/genPoints');
+const { resetAnalyzer } = require('../utils/cpp');
+const { storePoints } = require('../utils/csv');
 
 const api = Router();
 
 api.post('/connect', async (req, res) => {
   if (!moku.connected) await moku.connect();
+  if (!telnet.connected) await telnet.connect();
   res.sendStatus(201);
 });
 
-api.get('/gen', async (req, res) => {
-  const { channel, dbm, frequency } = req.query;
-  process.env.inOperation = 1;
-  await setAnalyzer(+frequency);
-  await moku.genPhase({ channel, power: dbm, frequency });
-  await ms(10);
-  const power = await getPower();
+api.get('/gen_points', async (req, res) => {
+  const { freqLow, freqHigh, pointsQuantity } = req.query;
+  const points = await genPoints(+freqLow, +freqHigh, +pointsQuantity);
   await resetAnalyzer();
-  process.env.inOperation = 0;
-  res.status(200).send({ power });
+  await storePoints(points);
+  res.status(200).send({ points });
 });
 
 module.exports = api;

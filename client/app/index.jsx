@@ -8,7 +8,7 @@ const ping = async () => {
 export default class extends Component {
   constructor(props) {
     super(props);
-    this.state = { response: '' };
+    this.state = { response: [] };
 
     this.clickme = this.clickme.bind(this);
   }
@@ -21,9 +21,9 @@ export default class extends Component {
 
   async clickme() {
     const {
-      data: { power },
-    } = await get('/api/gen', { params: { channel: 2, dbm: 5, frequency: 150 } });
-    this.setState({ response: power });
+      data: { points },
+    } = await get('/api/gen_points', { params: { freqLow: 100, freqHigh: 200, pointsQuantity: 100 } });
+    this.setState({ response: points });
   }
 
   render() {
@@ -33,7 +33,9 @@ export default class extends Component {
         <button type="submit" onClick={this.clickme}>
           click me
         </button>
-        <div>{response}</div>
+        {response.map(point => (
+          <div>{point}</div>
+        ))}
       </Fragment>
     );
   }

@@ -13,6 +13,7 @@ def gen():
     channel = int(request.args.get('channel'))
     power = float(request.args.get('power'))
     frequency = float(request.args.get('frequency'))
+    degrees = float(request.args.get('degrees'))
 
     power -= 0.5
     offset = -0.1 + ((power + 0.5) * 0.035)
@@ -21,7 +22,7 @@ def gen():
 
     freq = frequency * (10 ** 6)
 
-    i.gen_sinewave(channel, v, freq)
+    i.gen_sinewave(channel, v, freq, degrees)
     return 'done'
 
 @app.route('/shutdown/', methods=['GET'])
