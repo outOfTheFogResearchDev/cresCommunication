@@ -8,6 +8,9 @@ m = Moku.get_by_name('Moku')
 i = Phasemeter()
 m.deploy_instrument(i)
 
+i.set_initfreq(1, 10e6)
+i.set_initfreq(2, 10e6)
+
 @app.route('/gen/', methods=['GET'])
 def gen():
     channel = int(request.args.get('channel'))
@@ -23,6 +26,8 @@ def gen():
     freq = frequency * (10 ** 6)
 
     i.gen_sinewave(channel, v, freq, degrees)
+    if channel == 2:
+        i.reacquire()
     return 'done'
 
 @app.route('/shutdown/', methods=['GET'])

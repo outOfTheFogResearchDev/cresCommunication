@@ -33,9 +33,9 @@ app.use('/api', api);
 let ping = false;
 
 const gracefulShutdown = async () => {
-  const gracefulMoku = Promise.race(moku.gracefulShutdown(), ms(2000));
-  const gracefulTelnet = Promise.race(telnet.disconnect(), ms(2000));
-  await Promise.all(gracefulMoku, gracefulTelnet);
+  const gracefulMoku = Promise.race([moku.gracefulShutdown(), ms(2000)]);
+  const gracefulTelnet = Promise.race([telnet.disconnect(), ms(2000)]);
+  await Promise.all([gracefulMoku, gracefulTelnet]);
   process.exit();
 };
 

@@ -17,6 +17,12 @@
       "include_dirs": [ "<(module_root_dir)/server/app/utils/cpp" ],
       "sources": [ "<(module_root_dir)/server/app/utils/cpp/resetAnalyzer.cpp" ],
       "link_settings": { "libraries": [ "-lvisa64" ], "library_dirs" : [ "<(module_root_dir)/server/app/utils/cpp" ] }
+    },
+    { 
+      "target_name": "setCenter",
+      "include_dirs": [ "<(module_root_dir)/server/app/utils/cpp" ],
+      "sources": [ "<(module_root_dir)/server/app/utils/cpp/setCenter.cpp" ],
+      "link_settings": { "libraries": [ "-lvisa64" ], "library_dirs" : [ "<(module_root_dir)/server/app/utils/cpp" ] }
     }
   ]
 }

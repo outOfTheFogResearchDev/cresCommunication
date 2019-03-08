@@ -16,4 +16,5 @@ module.exports = {
   },
   resetAnalyzer: bindings('resetAnalyzer'),
   setAnalyzer: bindings('setAnalyzer'),
+  setCenter: bindings('setCenter'),
 };

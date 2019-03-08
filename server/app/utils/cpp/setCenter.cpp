@@ -19,17 +19,8 @@ void setAnalyzer(const FunctionCallbackInfo<Value> &args)
     if (viStatus)
         return;
 
-    // Turn off sweeping
-    viSetAttribute(viMXA, VI_ATTR_TMO_VALUE, 600000);
-    viClear(viMXA);
-    viPrintf(viMXA, "*CLS\n");
-    viPrintf(viMXA, "*RST\n");
-    viPrintf(viMXA, "INIT:CONT OFF\n");
-
     // Set band center and ref level
     viPrintf(viMXA, "FREQ:CENTER %f MHz\n", frequency);
-    viPrintf(viMXA, "FREQ:SPAN 1 MHz\n");
-    viPrintf(viMXA, "DISP:WIND:TRAC:Y:RLEV 10 dBm\n");
 
     viClose(viMXA);     // closes session
     viClose(defaultRM); // closes default session

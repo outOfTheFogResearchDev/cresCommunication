@@ -8,33 +8,55 @@ const ping = async () => {
 export default class extends Component {
   constructor(props) {
     super(props);
-    this.state = { response: [] };
+    this.state = { response: [], frequency: 100, amplitude: 0, phase: 0 };
 
     this.clickme = this.clickme.bind(this);
+    this.genPhase = this.genPhase.bind(this);
+    this.inputChange = this.inputChange.bind(this);
   }
 
   async componentDidMount() {
     setInterval(ping, 1000);
     await post('/api/connect');
-    this.setState({ response: 'hi' });
+    this.setState({ response: ['hi'] });
   }
 
   async clickme() {
     const {
       data: { points },
-    } = await get('/api/gen_points', { params: { freqLow: 100, freqHigh: 200, pointsQuantity: 100 } });
+    } = await get('/api/gen_points', { params: { freqLow: 100, freqHigh: 200, pointsQuantity: 150 } });
     this.setState({ response: points });
   }
 
+  async genPhase() {
+    const { frequency, amplitude, phase } = this.state;
+    const {
+      data: { point },
+    } = await get('/api/gen', { params: { frequency, amplitude, phase } });
+    this.setState({ response: [point] });
+  }
+
+  async inputChange({ target: { value, name } }) {
+    this.setState({ [name]: value });
+  }
+
   render() {
-    const { response } = this.state;
+    const { response, frequency, amplitude, phase } = this.state;
     return (
       <Fragment>
+        <input type="number" name="frequency" value={frequency} min="100" max="200" onChange={this.inputChange} />
+        <input type="number" name="amplitude" value={amplitude} min="-10" max="10" onChange={this.inputChange} />
+        <input type="number" name="phase" value={phase} min="-180" max="180" onChange={this.inputChange} />
+        <button type="submit" onClick={this.genPhase}>
+          Gen Phase
+        </button>
         <button type="submit" onClick={this.clickme}>
           click me
         </button>
         {response.map(point => (
-          <div>{point}</div>
+          <div>{`freq: ${point[0]}    degrees: ${point[1]}     power: ${point[2]}     rejection: ${
+            point[3]
+          }     corrected rejection: ${point[4]}`}</div>
         ))}
       </Fragment>
     );
