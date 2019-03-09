@@ -24,7 +24,7 @@ export default class extends Component {
   async clickme() {
     const {
       data: { points },
-    } = await get('/api/gen_points', { params: { freqLow: 100, freqHigh: 200, pointsQuantity: 150 } });
+    } = await get('/api/optimizeFrequency', { params: { frequency: 150, pointNumber: 100 } });
     this.setState({ response: points });
   }
 
@@ -54,7 +54,7 @@ export default class extends Component {
           click me
         </button>
         {response.map(point => (
-          <div>{`freq: ${point[0]}    degrees: ${point[1]}     power: ${point[2]}     rejection: ${
+          <div>{`freq: ${point[0]}    amp: ${point[1]}     phase: ${point[2]}     rejection: ${
             point[3]
           }     corrected rejection: ${point[4]}`}</div>
         ))}

@@ -1,38 +1,40 @@
 from flask import Flask, request
-from pymoku import *
+import pymoku
+from pymoku import Moku
 from pymoku.instruments import Phasemeter
 import sys
 app = Flask(__name__)
 
 m = Moku.get_by_name('Moku')
+
+pymoku._set_autocommit(False)
+
 i = Phasemeter()
 m.deploy_instrument(i)
-
-i.set_initfreq(1, 10e6)
-i.set_initfreq(2, 10e6)
 
 @app.route('/gen/', methods=['GET'])
 def gen():
     channel = int(request.args.get('channel'))
-    power = float(request.args.get('power'))
     frequency = float(request.args.get('frequency'))
+    power = float(request.args.get('power'))
     degrees = float(request.args.get('degrees'))
+
+    freq = frequency * (10 ** 6)
 
     power -= 0.5
     offset = -0.1 + ((power + 0.5) * 0.035)
     loss = 6 + offset
     v = 10 ** ((power - 10 + loss) / 20)
 
-    freq = frequency * (10 ** 6)
-
     i.gen_sinewave(channel, v, freq, degrees)
     if channel == 2:
-        i.reacquire()
+        i.commit()
     return 'done'
 
 @app.route('/shutdown/', methods=['GET'])
 def shutdown():
     i.gen_off()
+    i.commit()
     m.close()
     request.environ.get('werkzeug.server.shutdown')()
     return 'done'

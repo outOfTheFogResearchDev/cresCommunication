@@ -6,8 +6,10 @@ const csvRead = require('csv-parse');
 
 const csvFolderLocation = './server/local';
 const csvLocation = () => `${csvFolderLocation}/data.csv`;
+const pointOptimizeLocation = (frequency, i, j) =>
+  `${csvFolderLocation}/${frequency}_${i ? `${i}_${j}` : '11X11'}_Optimize.csv`;
 
-const writeCsv = async points => {
+const writeCsv = async (points, location) => {
   const csv = await new Promise(resolve => csvWrite(points, (err, data) => resolve(data)));
   // if the local folder doesnt exist, make it
   try {
@@ -15,7 +17,7 @@ const writeCsv = async points => {
   } catch (e) {
     await mkdir(csvFolderLocation);
   }
-  await writeFile(csvLocation(), csv);
+  await writeFile(location(), csv);
 };
 
 const readCsv = async () => {
@@ -26,7 +28,10 @@ const readCsv = async () => {
 
 module.exports = {
   async storePoints(points) {
-    writeCsv(points);
+    writeCsv(points, csvLocation);
+  },
+  async storeOptimize(points, frequency, i, j) {
+    writeCsv(points, () => pointOptimizeLocation(frequency, i, j));
   },
   getPoints: () => readCsv.catch(() => [null, null, null, null]),
 };
