@@ -22,9 +22,13 @@ export default class extends Component {
   }
 
   async clickme() {
+    // const {
+    //   data: { points },
+    // } = await get('/api/optimizeFrequency', { params: { frequency: 150 } });
+    // this.setState({ response: points });
     const {
       data: { points },
-    } = await get('/api/optimizeFrequency', { params: { frequency: 150, pointNumber: 100 } });
+    } = await get('/api/gen_points', { params: { freqLow: 100, freqHigh: 200, pointsQuantity: 150 } });
     this.setState({ response: points });
   }
 

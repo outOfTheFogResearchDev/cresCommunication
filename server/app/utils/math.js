@@ -1,10 +1,17 @@
 const min = (array, index) =>
   array.reduce((lowest, element) => (!lowest[index] || element[index] < lowest[index] ? element : lowest), []);
 
-const asyncLoop = async (i, stop, incrimenter, cb) => {
+const asyncLoop = async (i, stop, incrimenter, cb, s) => {
   if (i > stop) return;
-  await cb(i);
-  await asyncLoop(i + incrimenter, stop, incrimenter, cb);
+  let offset = 0;
+  if (s) {
+    const [skip, center] = s;
+    if (skip !== 0 && i === center - skip) {
+      offset = skip * 2 + 1;
+    }
+  }
+  await cb(i + offset);
+  await asyncLoop(i + offset + incrimenter, stop, incrimenter, cb, s);
 };
 
 module.exports = {
