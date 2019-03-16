@@ -3,6 +3,7 @@ const axios = require('axios');
 const telnet = require('./telnet');
 
 let moku;
+let actions = 0;
 const pythonPort = axios.create({ baseURL: 'http://127.0.0.1:5000' });
 
 module.exports = {
@@ -13,6 +14,7 @@ module.exports = {
       moku.stdout.on('data', data => {
         if (!this.connected) {
           this.connected = true;
+          actions = 0;
           resolve(data);
         }
       });
@@ -20,6 +22,10 @@ module.exports = {
   },
   genPhase: args => pythonPort('/gen', { params: args }),
   async setPoint(frequency, power, degrees) {
+    if (actions >= 150) {
+      await this.gracefulShutdown();
+      await this.connect();
+    }
     let code = Math.floor((frequency - 102.5) / 5);
     if (code < 0) code = 0;
     if (code > 18) code = 18;
@@ -31,12 +37,17 @@ module.exports = {
       power: power < 0 ? -1 * power : 0,
       degrees: degrees < 0 ? -1 * degrees : 0,
     });
+    actions += 1;
   },
-
   async gracefulShutdown() {
+    if (!moku) return;
     await pythonPort('/shutdown');
+    await new Promise(resolve => {
+      moku.on('close', resolve);
+      moku.kill();
+    });
     this.connected = false;
-    moku.kill();
     moku = null;
+    actions = 0;
   },
 };

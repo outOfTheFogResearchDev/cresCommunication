@@ -3,24 +3,9 @@ const telnet = require('../telnet');
 const { getPower } = require('../cpp');
 const { ms } = require('../time');
 const { asyncLoop, twoDMin } = require('../math');
+const applyTable = require('../lookupTable/apply');
 
-const parseGlobalStat = async () => {
-  const globalStat = await telnet.write('GlobalStat');
-  let index = globalStat.indexOf('Amplitude:');
-  const amp = +globalStat.substring(index + 12, index + 16);
-  index = globalStat.indexOf('360 Phase:', index + 16);
-  const phase = +globalStat.substring(index + 12, index + 16);
-  index = globalStat.indexOf('PS1', index + 16);
-  const ps1 = +globalStat.substring(index + 15, index + 20);
-  index = globalStat.indexOf('PS2', index + 20);
-  const ps2 = +globalStat.substring(index + 15, index + 20);
-  index = globalStat.indexOf('PD', index + 20);
-  const pd = +globalStat.substring(index + 14, index + 19);
-  return { amp, phase, ps1, ps2, pd };
-};
-
-const getGrid = async (frequency, power, degrees, iteration = 0, prevLowest) => {
-  const { amp, phase, ps1, ps2, pd } = await parseGlobalStat();
+const getGrid = async (frequency, power, degrees, amp, phase, ps1, ps2, pd, iteration = 0, prevLowest) => {
   const grid = [];
   await telnet.write(`mp 1 ${ps1 > ps2 ? 2 : 1} ${ps1 > ps2 ? ps2 : ps1} `);
   let times;
@@ -77,11 +62,15 @@ const getGrid = async (frequency, power, degrees, iteration = 0, prevLowest) => 
   if (prevLowest && prevLowest[9] < lowest[9]) {
     lowest = prevLowest;
   }
-  return lowest[9] < -50 || iteration === 2 ? lowest : getGrid(frequency, power, degrees, iteration + 1, lowest);
+  return lowest[9] < -50 || iteration === 2
+    ? lowest
+    : getGrid(frequency, power, degrees, amp, phase, ps1, ps2, pd, iteration + 1, lowest);
 };
 
-module.exports = async (frequency, power, degrees) => {
+module.exports = async (frequency, power, degrees, usingTable) => {
   await moku.setPoint(frequency, power, degrees);
-  const lowest = await getGrid(frequency, power, degrees);
+  await ms(10);
+  const { amp, phase, ps1, ps2, pd } = await applyTable('fine', usingTable);
+  const lowest = await getGrid(frequency, power, degrees, amp, phase, ps1, ps2, pd);
   return lowest;
 };
