@@ -6,6 +6,7 @@ const optimizeFrequency = require('../utils/algorithms/optimizeFrequency');
 const { getPower, setAnalyzer, resetAnalyzer } = require('../utils/cpp');
 const { storePoints } = require('../utils/csv');
 const { ms } = require('../utils/time');
+const applyTable = require('../utils/lookupTable/apply');
 
 const api = Router();
 
@@ -15,8 +16,11 @@ api.post('/connect', async (req, res) => {
     return;
   }
   process.env.inOperation = 1;
+  console.log('connecting');
   if (!moku.connected) await moku.connect();
+  console.log('moku');
   if (!telnet.connected) await telnet.connect();
+  console.log('telnet');
   process.env.inOperation = 0;
   res.sendStatus(201);
 });
@@ -74,7 +78,17 @@ api.get('/gen', async (req, res) => {
   process.env.inOperation = 1;
   await setAnalyzer(+frequency);
   await moku.setPoint(+frequency, +amplitude, +phase);
-  await ms(2);
+  if (+frequency < 142.5 || +frequency > 157.4) {
+    await telnet.write(`mp 0 1 0 `);
+    await telnet.write(`mp 0 2 0 `);
+    await telnet.write(`mp 0 3 0 `);
+    await telnet.write(`ac1 1`);
+    await telnet.write(`pc1 1`);
+  } else {
+    await ms(10);
+    await applyTable('fine');
+  }
+  await ms(10);
   const power = await getPower();
   await resetAnalyzer();
   process.env.inOperation = 0;

@@ -7,6 +7,7 @@ const applyTable = require('../lookupTable/apply');
 
 const getGrid = async (frequency, power, degrees, amp, phase, ps1, ps2, pd, iteration = 0, prevLowest) => {
   const grid = [];
+  console.log(power, degrees);
   await telnet.write(`mp 1 ${ps1 > ps2 ? 2 : 1} ${ps1 > ps2 ? ps2 : ps1} `);
   let times;
   let skip;
@@ -19,6 +20,9 @@ const getGrid = async (frequency, power, degrees, amp, phase, ps1, ps2, pd, iter
   } else if (iteration === 2) {
     times = 10;
     skip = 5;
+  } else if (iteration === 3) {
+    times = 20;
+    skip = 10;
   }
   await asyncLoop(
     (ps1 > ps2 ? ps1 : ps2) - times,
@@ -35,7 +39,6 @@ const getGrid = async (frequency, power, degrees, amp, phase, ps1, ps2, pd, iter
         1,
         async j => {
           if (j < 0 || j > 511) return;
-          console.log(power, degrees, i, j);
           grid[index].push([frequency, power, degrees, amp, phase, ps1 > ps2 ? i : 0, ps1 > ps2 ? 0 : i, j]);
           await telnet.write(`mp 1 3 ${j} `);
           await ms(2);
@@ -62,7 +65,7 @@ const getGrid = async (frequency, power, degrees, amp, phase, ps1, ps2, pd, iter
   if (prevLowest && prevLowest[9] < lowest[9]) {
     lowest = prevLowest;
   }
-  return lowest[9] < -50 || iteration === 2
+  return iteration === 3 || lowest[9] < [-50, -40, -32][iteration]
     ? lowest
     : getGrid(frequency, power, degrees, amp, phase, ps1, ps2, pd, iteration + 1, lowest);
 };
