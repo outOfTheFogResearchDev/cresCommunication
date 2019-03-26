@@ -11,7 +11,7 @@ let resetAnalyzer;
 let moku;
 let genRandomPoints;
 let optimizeFrequency;
-if (!process.env.NODE_ENV === 'exe') {
+if (!process.env.TYPE === 'exe') {
   ({ getPower, setAnalyzer, resetAnalyzer } = require('../utils/cpp'));
   moku = require('../utils/moku');
   genRandomPoints = require('../utils/algorithms/genRandomPoints');
@@ -27,7 +27,7 @@ api.post('/connect', async (req, res) => {
   }
   inOperation();
   console.log('connecting'); // eslint-disable-line no-console
-  if (!process.env.NODE_ENV === 'exe' && !moku.connected) {
+  if (!process.env.TYPE === 'exe' && !moku.connected) {
     await moku.connect();
     console.log('moku'); // eslint-disable-line no-console
   }
@@ -45,7 +45,7 @@ api.get('/command', async (req, res) => {
   res.status(200).send({ response });
 });
 
-if (!process.env.NODE_ENV === 'exe') {
+if (!process.env.TYPE === 'exe') {
   /**
    * type = auto
    * type = table

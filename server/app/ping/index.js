@@ -2,12 +2,12 @@ const { Router } = require('express');
 const telnet = require('../utils/telnet');
 const { ms } = require('../utils/time');
 
-const moku = process.env.NODE_ENV === 'exe' ? null : require('../utils/moku');
+const moku = process.env.TYPE === 'exe' ? null : require('../utils/moku');
 
 const ping = Router();
 
 const gracefulShutdown = async () => {
-  const gracefulMoku = process.env.NODE_ENV === 'exe' ? null : Promise.race([moku.gracefulShutdown(), ms(2000)]);
+  const gracefulMoku = process.env.TYPE === 'exe' ? null : Promise.race([moku.gracefulShutdown(), ms(2000)]);
   const gracefulTelnet = Promise.race([telnet.disconnect(), ms(2000)]);
   await Promise.all([gracefulMoku, gracefulTelnet]);
   process.exit();

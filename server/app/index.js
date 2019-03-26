@@ -3,8 +3,7 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const api = require('./api/index');
 const { ping } = require('./ping/index');
-
-const config = process.env.NODE_ENV === 'exe' ? process.env : require('../../config/config');
+const config = require('../../config/config');
 
 const app = express();
 
@@ -30,6 +29,6 @@ app.use('/api', api);
 
 app.use('/ping', ping);
 
-app.get('/env', (req, res) => res.status(200).send({ env: process.env.NODE_ENV }));
+app.get('/env', (req, res) => res.status(200).send({ env: process.env.TYPE }));
 
 module.exports = app;

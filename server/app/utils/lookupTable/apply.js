@@ -8,7 +8,7 @@ const { readTable } = require('../csv');
 module.exports = async (type, usingTable) => {
   const { frequency, amp, phase } = await telnet.parseGlobalStat();
   const table = await readTable(
-    `${__dirname}/${process.env.NODE_ENV === 'exe' ? 'tools/grid' : 'local'}/${usingTable || frequency}_MHz.csv`
+    `${__dirname}/${process.env.TYPE === 'exe' ? 'tools/grid' : 'local'}/${usingTable || frequency}_MHz.csv`
   );
   let closest = [];
   let closestDistance = 0;

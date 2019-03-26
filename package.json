@@ -5,12 +5,12 @@
   "main": "server/index.js",
   "scripts": {
     "test": "set NODE_ENV=test&&jest",
-    "start": "moku list&&moku list&&node server/index.js",
+    "start": "set TYPE=local&&moku list&&moku list&&node server/index.js",
     "open": "start chrome /max --app=http://localhost:3330",
     "cpp-build": "node-gyp rebuild",
     "react-dev": "webpack -d --watch --optimize-minimize --optimize-occurrence-order --optimize-dedupe --config webpack.config.js",
     "deployment-build": "webpack -p --progress --optimize-minimize --optimize-occurrence-order --optimize-dedupe --config webpack.config.js",
-    "server-build": "webpack -p --progress --optimize-minimize --optimize-occurrence-order --optimize-dedupe --config webpack.config.server.js",
+    "server-build": "set TYPE=exe&&webpack -d --progress --optimize-minimize --optimize-occurrence-order --optimize-dedupe --config webpack.config.server.js",
     "setup": "npm i&&npm run deployment-build",
     "lint": "eslint .",
     "lint-fix": "eslint . --fix"

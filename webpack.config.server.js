@@ -10,7 +10,6 @@ module.exports = {
   target: 'node',
   node: { __dirname: false, __filename: false },
   resolve: { extensions: ['.js'] },
-  devtool: 'source-map',
   module: {
     rules: [
       {

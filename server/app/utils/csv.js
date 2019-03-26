@@ -71,5 +71,5 @@ module.exports = {
   concatCsv,
   getPoints: () => readCsv.catch(() => [null, null, null, null]),
   readTable: frequencyLocation =>
-    new Promise(async resolve => csvRead(await readFile(frequencyLocation, 'utf8'), (err, data) => resolve(data))),
+    new Promise(resolve => readFile(frequencyLocation, 'utf8').then(csv => csvRead(csv, (err, data) => resolve(data)))),
 };

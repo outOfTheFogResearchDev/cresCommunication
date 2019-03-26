@@ -125,6 +125,7 @@ export default class extends Component {
       optimizePH,
       optimizeWithT,
     } = this.state;
+    console.log(env);
     return !env ? null : (
       <Fragment>
         <form>
