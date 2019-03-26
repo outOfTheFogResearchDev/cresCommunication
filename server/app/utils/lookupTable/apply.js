@@ -7,7 +7,9 @@ const { readTable } = require('../csv');
  */
 module.exports = async (type, usingTable) => {
   const { frequency, amp, phase } = await telnet.parseGlobalStat();
-  const table = await readTable(`${__dirname}/local/${usingTable || frequency}_MHz.csv`);
+  const table = await readTable(
+    `${__dirname}/${process.env.NODE_ENV === 'exe' ? 'tools/grid' : 'local'}/${usingTable || frequency}_MHz.csv`
+  );
   let closest = [];
   let closestDistance = 0;
   table.forEach(cell => {
@@ -66,7 +68,7 @@ module.exports = async (type, usingTable) => {
           (1 - Math.abs(otherCorner[3] - amp) / Math.abs(closest[3] - otherCorner[3])) * otherCorner[7]
       );
       if ((pd < closest[7] && pd < otherCorner[7]) || (pd > closest[7] && pd > otherCorner[7])) {
-        pd = (closest[7] + otherCorner[7]) / 2;
+        pd = Math.round((closest[7] + otherCorner[7]) / 2);
       }
     }
   }

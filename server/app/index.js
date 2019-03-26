@@ -2,11 +2,9 @@ const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const api = require('./api/index');
-const moku = require('./utils/moku');
-const telnet = require('./utils/telnet');
-const { ms } = require('./utils/time');
+const { ping } = require('./ping/index');
 
-const config = process.env.NODE_ENV === 'production' ? process.env : require('../../config/config');
+const config = process.env.NODE_ENV === 'exe' ? process.env : require('../../config/config');
 
 const app = express();
 
@@ -26,32 +24,12 @@ app.use(
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use(express.static(`${__dirname}/../../client/dist/`));
+app.use(express.static(`${__dirname}/client`));
 
 app.use('/api', api);
 
-let ping = false;
+app.use('/ping', ping);
 
-const gracefulShutdown = async () => {
-  const gracefulMoku = Promise.race([moku.gracefulShutdown(), ms(2000)]);
-  const gracefulTelnet = Promise.race([telnet.disconnect(), ms(2000)]);
-  await Promise.all([gracefulMoku, gracefulTelnet]);
-  process.exit();
-};
-
-const timedExit = async () => {
-  if (!ping) gracefulShutdown();
-  else {
-    if (!+process.env.inOperation) ping = false;
-    setTimeout(timedExit, 2000);
-  }
-};
-
-setTimeout(timedExit, 10000); // starts on server start
-
-app.post('/ping', (req, res) => {
-  ping = true;
-  res.sendStatus(201);
-});
+app.get('/env', (req, res) => res.status(200).send({ env: process.env.NODE_ENV }));
 
 module.exports = app;

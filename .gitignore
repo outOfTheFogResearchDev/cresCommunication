@@ -3,3 +3,4 @@ bundle/
 /config
 build/
 local/
+/.vscode

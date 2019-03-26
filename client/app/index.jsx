@@ -10,6 +10,7 @@ export default class extends Component {
     super(props);
     this.state = {
       response: [],
+      env: null,
       command: '',
       mokuF: 150,
       mokuA: 0,
@@ -38,8 +39,13 @@ export default class extends Component {
 
   async componentDidMount() {
     setInterval(ping, 1000);
-    await post('/api/connect');
-    this.setState({ response: ['hi'] });
+    const {
+      data: { env },
+    } = await get('/env');
+    this.setState({ env }, async () => {
+      await post('/api/connect');
+      this.setState({ response: ['hi'] });
+    });
   }
 
   async command() {
@@ -100,6 +106,7 @@ export default class extends Component {
   render() {
     const {
       response,
+      env,
       command,
       mokuF,
       mokuA,
@@ -118,7 +125,7 @@ export default class extends Component {
       optimizePH,
       optimizeWithT,
     } = this.state;
-    return (
+    return !env ? null : (
       <Fragment>
         <form>
           <label htmlFor="command">
@@ -135,282 +142,287 @@ export default class extends Component {
             Submit
           </button>
         </form>
-        <form style={{ marginTop: '20px' }}>
-          <div style={{ fontWeight: 'bold' }}>Moku Signal Generation</div>
-          <label htmlFor="mokuF">
-            {'Frequency: '}
-            <input
-              type="number"
-              name="mokuF"
-              id="mokuF"
-              value={mokuF}
-              min="100"
-              max="200"
-              step="0.1"
-              onChange={this.inputChange}
-            />
-          </label>
-          <label htmlFor="mokuA">
-            {' Amplitude: '}
-            <input
-              type="number"
-              name="mokuA"
-              id="mokuA"
-              value={mokuA}
-              min="-10"
-              max="10"
-              step="0.1"
-              onChange={this.inputChange}
-            />
-          </label>
-          <label htmlFor="mokuP">
-            {' Phase: '}
-            <input
-              type="number"
-              name="mokuP"
-              id="mokuP"
-              value={mokuP}
-              min="-180"
-              max="180"
-              step="0.1"
-              onChange={this.inputChange}
-            />
-          </label>
-          <button
-            type="submit"
-            style={{ marginLeft: '5px' }}
-            onClick={e => {
-              e.preventDefault();
-              this.genSig();
-            }}
-          >
-            Gen Sig
-          </button>
-        </form>
-        <form style={{ marginTop: '20px' }}>
-          <div style={{ fontWeight: 'bold' }}>Sweep</div>
-          <label htmlFor="sweepLF">
-            {'Frequency: from '}
-            <input
-              style={{ marginLeft: '1px', width: '75px' }}
-              type="number"
-              name="sweepLF"
-              id="sweepLF"
-              value={sweepLF}
-              min="100"
-              max="200"
-              step="0.1"
-              onChange={this.inputChange}
-            />
-          </label>
-          <label htmlFor="sweepHF">
-            {' to '}
-            <input
-              style={{ width: '75px' }}
-              type="number"
-              name="sweepHF"
-              id="sweepHF"
-              value={sweepHF}
-              min="100"
-              max="200"
-              step="0.1"
-              onChange={this.inputChange}
-            />
-          </label>
-          <br />
-          <label htmlFor="sweepLA">
-            {'Amplitude: from '}
-            <input
-              style={{ width: '75px' }}
-              type="number"
-              name="sweepLA"
-              id="sweepLA"
-              value={sweepLA}
-              min="-10"
-              max="10"
-              step="0.1"
-              onChange={this.inputChange}
-            />
-          </label>
-          <label htmlFor="sweepHA">
-            {' to '}
-            <input
-              style={{ width: '75px' }}
-              type="number"
-              name="sweepHA"
-              id="sweepHA"
-              value={sweepHA}
-              min="-10"
-              max="10"
-              step="0.1"
-              onChange={this.inputChange}
-            />
-          </label>
-          <br />
-          <label htmlFor="sweepLP">
-            {'Phase: from '}
-            <input
-              style={{ marginLeft: '31px', width: '75px' }}
-              type="number"
-              name="sweepLP"
-              id="sweepLP"
-              value={sweepLP}
-              min="-180"
-              max="180"
-              step="0.1"
-              onChange={this.inputChange}
-            />
-          </label>
-          <label htmlFor="sweepHP">
-            {' to '}
-            <input
-              style={{ width: '75px' }}
-              type="number"
-              name="sweepHP"
-              id="sweepHP"
-              value={sweepHP}
-              min="-180"
-              max="180"
-              step="0.1"
-              onChange={this.inputChange}
-            />
-          </label>
-          <br />
-          <label htmlFor="sweepPQ">
-            {'Points: '}
-            <input
-              style={{ width: '75px' }}
-              type="number"
-              name="sweepPQ"
-              id="sweepPQ"
-              value={sweepPQ}
-              min="0"
-              max="1000"
-              step="1"
-              onChange={this.inputChange}
-            />
-          </label>
-          <br />
-          <button
-            style={{ marginLeft: '25px', marginTop: '5px' }}
-            type="submit"
-            onClick={e => {
-              e.preventDefault();
-              this.sweep('auto');
-            }}
-          >
-            Sweep Firmware
-          </button>
-          <button
-            style={{ marginLeft: '10px' }}
-            type="submit"
-            onClick={e => {
-              e.preventDefault();
-              this.sweep('table');
-            }}
-          >
-            Sweep Software
-          </button>
-        </form>
-        <form style={{ marginTop: '20px' }}>
-          <div style={{ fontWeight: 'bold' }}>Optimize Frequency</div>
-          <button
-            style={{ marginTop: '5px' }}
-            type="submit"
-            onClick={e => {
-              e.preventDefault();
-              this.optimizeFrequency();
-            }}
-          >
-            {'Optimize'}
-          </button>
-          <label htmlFor="optimizeF">
-            {' Frequency: '}
-            <input
-              type="number"
-              style={{ width: '75px' }}
-              name="optimizeF"
-              value={optimizeF}
-              id="optimizeF"
-              min="100"
-              max="200"
-              step="5"
-              onChange={this.inputChange}
-            />
-          </label>
-          <label htmlFor="optimizeWithT">
-            {' with Table: '}
-            <input
-              type="number"
-              style={{ width: '75px' }}
-              name="optimizeWithT"
-              value={optimizeWithT}
-              id="optimizeWithT"
-              min="100"
-              max="200"
-              step="5"
-              onChange={this.inputChange}
-            />
-          </label>
-          <br />
-          <label htmlFor="optimizeAL">
-            {'Amplitude: from '}
-            <input
-              style={{ marginTop: '5px', width: '75px' }}
-              type="number"
-              name="optimizeAL"
-              id="optimizeAL"
-              value={optimizeAL}
-              min="-10"
-              max="10"
-              step="0.1"
-              onChange={this.inputChange}
-            />
-          </label>
-          <label htmlFor="optimizeAH">
-            {' to '}
-            <input
-              style={{ width: '75px' }}
-              type="number"
-              name="optimizeAH"
-              id="optimizeAH"
-              value={optimizeAH}
-              min="-10"
-              max="10"
-              step="0.1"
-              onChange={this.inputChange}
-            />
-          </label>
-          <br />
-          <label htmlFor="optimizePL">
-            {'Phase: from '}
-            <input
-              style={{ marginLeft: '31px', width: '75px' }}
-              type="number"
-              name="optimizePL"
-              id="optimizePL"
-              value={optimizePL}
-              min="-180"
-              max="180"
-              step="0.1"
-              onChange={this.inputChange}
-            />
-          </label>
-          <label htmlFor="optimizePH">
-            {' to '}
-            <input
-              style={{ width: '75px' }}
-              type="number"
-              name="optimizePH"
-              id="optimizePH"
-              value={optimizePH}
-              min="-180"
-              max="180"
-              step="0.1"
-              onChange={this.inputChange}
-            />
-          </label>
-        </form>
+        {env === 'exe' ? null : (
+          <Fragment>
+            {' '}
+            <form style={{ marginTop: '20px' }}>
+              <div style={{ fontWeight: 'bold' }}>Moku Signal Generation</div>
+              <label htmlFor="mokuF">
+                {'Frequency: '}
+                <input
+                  type="number"
+                  name="mokuF"
+                  id="mokuF"
+                  value={mokuF}
+                  min="100"
+                  max="200"
+                  step="0.1"
+                  onChange={this.inputChange}
+                />
+              </label>
+              <label htmlFor="mokuA">
+                {' Amplitude: '}
+                <input
+                  type="number"
+                  name="mokuA"
+                  id="mokuA"
+                  value={mokuA}
+                  min="-10"
+                  max="10"
+                  step="0.1"
+                  onChange={this.inputChange}
+                />
+              </label>
+              <label htmlFor="mokuP">
+                {' Phase: '}
+                <input
+                  type="number"
+                  name="mokuP"
+                  id="mokuP"
+                  value={mokuP}
+                  min="-180"
+                  max="180"
+                  step="0.1"
+                  onChange={this.inputChange}
+                />
+              </label>
+              <button
+                type="submit"
+                style={{ marginLeft: '5px' }}
+                onClick={e => {
+                  e.preventDefault();
+                  this.genSig();
+                }}
+              >
+                Gen Sig
+              </button>
+            </form>
+            <form style={{ marginTop: '20px' }}>
+              <div style={{ fontWeight: 'bold' }}>Sweep</div>
+              <label htmlFor="sweepLF">
+                {'Frequency: from '}
+                <input
+                  style={{ marginLeft: '1px', width: '75px' }}
+                  type="number"
+                  name="sweepLF"
+                  id="sweepLF"
+                  value={sweepLF}
+                  min="100"
+                  max="200"
+                  step="0.1"
+                  onChange={this.inputChange}
+                />
+              </label>
+              <label htmlFor="sweepHF">
+                {' to '}
+                <input
+                  style={{ width: '75px' }}
+                  type="number"
+                  name="sweepHF"
+                  id="sweepHF"
+                  value={sweepHF}
+                  min="100"
+                  max="200"
+                  step="0.1"
+                  onChange={this.inputChange}
+                />
+              </label>
+              <br />
+              <label htmlFor="sweepLA">
+                {'Amplitude: from '}
+                <input
+                  style={{ width: '75px' }}
+                  type="number"
+                  name="sweepLA"
+                  id="sweepLA"
+                  value={sweepLA}
+                  min="-10"
+                  max="10"
+                  step="0.1"
+                  onChange={this.inputChange}
+                />
+              </label>
+              <label htmlFor="sweepHA">
+                {' to '}
+                <input
+                  style={{ width: '75px' }}
+                  type="number"
+                  name="sweepHA"
+                  id="sweepHA"
+                  value={sweepHA}
+                  min="-10"
+                  max="10"
+                  step="0.1"
+                  onChange={this.inputChange}
+                />
+              </label>
+              <br />
+              <label htmlFor="sweepLP">
+                {'Phase: from '}
+                <input
+                  style={{ marginLeft: '31px', width: '75px' }}
+                  type="number"
+                  name="sweepLP"
+                  id="sweepLP"
+                  value={sweepLP}
+                  min="-180"
+                  max="180"
+                  step="0.1"
+                  onChange={this.inputChange}
+                />
+              </label>
+              <label htmlFor="sweepHP">
+                {' to '}
+                <input
+                  style={{ width: '75px' }}
+                  type="number"
+                  name="sweepHP"
+                  id="sweepHP"
+                  value={sweepHP}
+                  min="-180"
+                  max="180"
+                  step="0.1"
+                  onChange={this.inputChange}
+                />
+              </label>
+              <br />
+              <label htmlFor="sweepPQ">
+                {'Points: '}
+                <input
+                  style={{ width: '75px' }}
+                  type="number"
+                  name="sweepPQ"
+                  id="sweepPQ"
+                  value={sweepPQ}
+                  min="0"
+                  max="1000"
+                  step="1"
+                  onChange={this.inputChange}
+                />
+              </label>
+              <br />
+              <button
+                style={{ marginLeft: '25px', marginTop: '5px' }}
+                type="submit"
+                onClick={e => {
+                  e.preventDefault();
+                  this.sweep('auto');
+                }}
+              >
+                Sweep Firmware
+              </button>
+              <button
+                style={{ marginLeft: '10px' }}
+                type="submit"
+                onClick={e => {
+                  e.preventDefault();
+                  this.sweep('table');
+                }}
+              >
+                Sweep Software
+              </button>
+            </form>
+            <form style={{ marginTop: '20px' }}>
+              <div style={{ fontWeight: 'bold' }}>Optimize Frequency</div>
+              <button
+                style={{ marginTop: '5px' }}
+                type="submit"
+                onClick={e => {
+                  e.preventDefault();
+                  this.optimizeFrequency();
+                }}
+              >
+                {'Optimize'}
+              </button>
+              <label htmlFor="optimizeF">
+                {' Frequency: '}
+                <input
+                  type="number"
+                  style={{ width: '75px' }}
+                  name="optimizeF"
+                  value={optimizeF}
+                  id="optimizeF"
+                  min="100"
+                  max="200"
+                  step="5"
+                  onChange={this.inputChange}
+                />
+              </label>
+              <label htmlFor="optimizeWithT">
+                {' with Table: '}
+                <input
+                  type="number"
+                  style={{ width: '75px' }}
+                  name="optimizeWithT"
+                  value={optimizeWithT}
+                  id="optimizeWithT"
+                  min="100"
+                  max="200"
+                  step="5"
+                  onChange={this.inputChange}
+                />
+              </label>
+              <br />
+              <label htmlFor="optimizeAL">
+                {'Amplitude: from '}
+                <input
+                  style={{ marginTop: '5px', width: '75px' }}
+                  type="number"
+                  name="optimizeAL"
+                  id="optimizeAL"
+                  value={optimizeAL}
+                  min="-10"
+                  max="10"
+                  step="0.1"
+                  onChange={this.inputChange}
+                />
+              </label>
+              <label htmlFor="optimizeAH">
+                {' to '}
+                <input
+                  style={{ width: '75px' }}
+                  type="number"
+                  name="optimizeAH"
+                  id="optimizeAH"
+                  value={optimizeAH}
+                  min="-10"
+                  max="10"
+                  step="0.1"
+                  onChange={this.inputChange}
+                />
+              </label>
+              <br />
+              <label htmlFor="optimizePL">
+                {'Phase: from '}
+                <input
+                  style={{ marginLeft: '31px', width: '75px' }}
+                  type="number"
+                  name="optimizePL"
+                  id="optimizePL"
+                  value={optimizePL}
+                  min="-180"
+                  max="180"
+                  step="0.1"
+                  onChange={this.inputChange}
+                />
+              </label>
+              <label htmlFor="optimizePH">
+                {' to '}
+                <input
+                  style={{ width: '75px' }}
+                  type="number"
+                  name="optimizePH"
+                  id="optimizePH"
+                  value={optimizePH}
+                  min="-180"
+                  max="180"
+                  step="0.1"
+                  onChange={this.inputChange}
+                />
+              </label>
+            </form>
+          </Fragment>
+        )}
         <p>{response}</p>
       </Fragment>
     );

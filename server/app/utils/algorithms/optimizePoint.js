@@ -7,7 +7,7 @@ const applyTable = require('../lookupTable/apply');
 
 const getGrid = async (frequency, power, degrees, amp, phase, ps1, ps2, pd, iteration = 0, prevLowest) => {
   const grid = [];
-  console.log(power, degrees);
+  console.log(power, degrees); // eslint-disable-line no-console
   await telnet.write(`mp 1 ${ps1 > ps2 ? 2 : 1} ${ps1 > ps2 ? ps2 : ps1} `);
   let times;
   let skip;
