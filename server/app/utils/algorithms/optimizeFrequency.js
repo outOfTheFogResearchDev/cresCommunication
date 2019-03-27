@@ -12,11 +12,9 @@ module.exports = async (frequency, ampLow, ampHigh, phaseLow, phaseHigh, usingTa
   await setAnalyzer(frequency);
   await telnet.write(`ac1 1`);
   await telnet.write(`pc1 1`);
-  const points = [];
   await asyncLoop(ampLow, ampHigh, 20 / 40, async i => {
     await asyncLoop(phaseLow, phaseHigh, 360 / 80, async j => {
       const point = await optimizePoint(frequency, i, j, usingTable);
-      points.push(point);
       await storeOptimize([point], frequency, i, j);
     });
   });
@@ -24,5 +22,4 @@ module.exports = async (frequency, ampLow, ampHigh, phaseLow, phaseHigh, usingTa
   await concatCsv();
   await resetAnalyzer();
   if (frequency === usingTable) await clearTemp();
-  return points;
 };

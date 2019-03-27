@@ -24,19 +24,22 @@ const getGrid = async (frequency, power, degrees, amp, phase, ps1, ps2, pd, iter
     times = 20;
     skip = 10;
   }
+  const prevWasTopSide = prevLowest && prevLowest[ps1 > ps2 ? 5 : 6] > (ps1 > ps2 ? ps1 : ps2);
+  let lowTracker = 0;
   await asyncLoop(
-    (ps1 > ps2 ? ps1 : ps2) - times,
-    (ps1 > ps2 ? ps1 : ps2) + times,
-    1,
-    async i => {
-      if (i < 0 || i > 511) return;
+    prevWasTopSide ? (ps1 > ps2 ? ps1 : ps2) + times : (ps1 > ps2 ? ps1 : ps2) - times,
+    prevWasTopSide ? (ps1 > ps2 ? ps1 : ps2) - times : (ps1 > ps2 ? ps1 : ps2) + times,
+    prevWasTopSide ? -1 : 1,
+    async (i, checkSide) => {
+      if (checkSide && iteration > 0 && lowTracker < [-60, -50, -40][iteration]) return 'stop loop';
+      if (i < 0 || i > 511) return false;
       grid.push([]);
       const index = grid.length - 1;
       await telnet.write(`mp 1 ${ps1 > ps2 ? 1 : 2} ${i} `);
-      await asyncLoop(
-        pd - times,
-        pd + times,
-        1,
+      return asyncLoop(
+        prevWasTopSide ? pd + times : pd - times,
+        prevWasTopSide ? pd - times : pd + times,
+        prevWasTopSide ? -1 : 1,
         async j => {
           if (j < 0 || j > 511) return;
           grid[index].push([frequency, power, degrees, amp, phase, ps1 > ps2 ? i : 0, ps1 > ps2 ? 0 : i, j]);
@@ -54,12 +57,14 @@ const getGrid = async (frequency, power, degrees, amp, phase, ps1, ps2, pd, iter
             }
           }
           grid[index][grid[index].length - 1].push(data);
-          grid[index][grid[index].length - 1].push(data + (10 - Math.abs(power)));
+          const correctedValue = data + (10 - Math.abs(power));
+          grid[index][grid[index].length - 1].push(correctedValue);
+          lowTracker = lowTracker < correctedValue ? lowTracker : correctedValue;
         },
         [skip, pd]
       );
     },
-    [skip, ps1 || ps2]
+    [skip, ps1 > ps2 ? ps1 : ps2]
   );
   let lowest = twoDMin(grid, 9);
   if (prevLowest && prevLowest[9] < lowest[9]) {

@@ -21,21 +21,21 @@ if (process.env.TYPE !== 'exe') {
 const api = Router();
 
 api.post('/connect', async (req, res) => {
-  if (getOperating()) {
-    res.sendStatus(200);
-    return;
-  }
-  inOperation();
-  console.log('connecting'); // eslint-disable-line no-console
-  if (process.env.TYPE !== 'exe' && !moku.connected) {
-    await moku.connect();
-    console.log('moku'); // eslint-disable-line no-console
-  }
-  if (!telnet.connected) {
-    await telnet.connect();
-    console.log('telnet'); // eslint-disable-line no-console
-  }
-  outOperation();
+  // if (getOperating()) {
+  //   res.sendStatus(200);
+  //   return;
+  // }
+  // inOperation();
+  // console.log('connecting'); // eslint-disable-line no-console
+  // if (process.env.TYPE !== 'exe' && !moku.connected) {
+  //   await moku.connect();
+  //   console.log('moku'); // eslint-disable-line no-console
+  // }
+  // if (!telnet.connected) {
+  //   await telnet.connect();
+  //   console.log('telnet'); // eslint-disable-line no-console
+  // }
+  // outOperation();
   res.sendStatus(201);
 });
 
@@ -91,7 +91,7 @@ if (process.env.TYPE !== 'exe') {
     await resetAnalyzer();
     await storePoints(points);
     outOperation();
-    res.status(200).send({ points });
+    res.status(200).send({ response: 'done' });
   });
 
   api.get('/gen', async (req, res) => {
@@ -127,9 +127,9 @@ if (process.env.TYPE !== 'exe') {
       return;
     }
     inOperation();
-    const points = await optimizeFrequency(+frequency, +ampLow, +ampHigh, +phaseLow, +phaseHigh, +usingTable);
+    await optimizeFrequency(+frequency, +ampLow, +ampHigh, +phaseLow, +phaseHigh, +usingTable);
     outOperation();
-    res.status(200).send({ points });
+    res.status(200).send({ response: 'done' });
   });
 }
 

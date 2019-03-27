@@ -2,15 +2,17 @@ const min = (array, index) =>
   array.reduce((lowest, element) => (!lowest[index] || element[index] < lowest[index] ? element : lowest), []);
 
 const asyncLoop = async (i, stop, incrimenter, cb, s) => {
-  if (i > stop) return;
+  const m = incrimenter > 0 ? 1 : -1;
+  if (!incrimenter || i * m > stop * m) return;
   let offset = 0;
   if (s) {
     const [skip, center] = s;
-    if (skip !== 0 && i === center - skip) {
-      offset = skip * 2 + 1;
+    if (skip !== 0 && i === center - skip * m) {
+      offset = (skip * 2 + 1) * m;
     }
   }
-  await cb(i + offset);
+  const done = await cb(i + offset, offset ? 'check side' : null);
+  if (done) return;
   await asyncLoop(i + offset + incrimenter, stop, incrimenter, cb, s);
 };
 
