@@ -1,6 +1,7 @@
 import React, { Component, Fragment } from 'react';
 import { get, post } from 'axios';
 import Local from './containers/local';
+import Command from './containers/command';
 
 const ping = async () => {
   await post('/ping');
@@ -32,7 +33,7 @@ export default class extends Component {
     };
 
     this.optimizeFrequency = this.optimizeFrequency.bind(this);
-    this.command = this.command.bind(this);
+    this.enterCommand = this.enterCommand.bind(this);
     this.sweep = this.sweep.bind(this);
     this.genSig = this.genSig.bind(this);
     this.inputChange = this.inputChange.bind(this);
@@ -50,7 +51,7 @@ export default class extends Component {
     });
   }
 
-  async command() {
+  async enterCommand() {
     const { command } = this.state;
     const {
       data: { response },
@@ -58,19 +59,19 @@ export default class extends Component {
     this.setState({ response });
   }
 
-  async optimizeFrequency() {
+  async optimizeFrequency(type) {
     const {
       optimizeF: frequency,
       optimizeAL: ampLow,
       optimizeAH: ampHigh,
       optimizePL: phaseLow,
       optimizePH: phaseHigh,
-      optimizeWithT: usingTable,
+      optimizeWithT,
     } = this.state;
     const {
       data: { response },
     } = await get('/api/optimizeFrequency', {
-      params: { frequency, ampLow, ampHigh, phaseLow, phaseHigh, usingTable },
+      params: { frequency, ampLow, ampHigh, phaseLow, phaseHigh, usingTable: type || optimizeWithT },
     });
     this.setState({ response });
   }
@@ -129,21 +130,7 @@ export default class extends Component {
     } = this.state;
     return !env ? null : (
       <Fragment>
-        <form>
-          <label htmlFor="command">
-            {'Command: '}
-            <input type="text" name="command" value={command} id="command" onChange={this.inputChange} />
-          </label>
-          <button
-            type="submit"
-            onClick={e => {
-              e.preventDefault();
-              this.command();
-            }}
-          >
-            Submit
-          </button>
-        </form>
+        <Command command={command} inputChange={this.inputChange} enterCommand={this.enterCommand} />
         {env === 'exe' ? null : (
           <Local
             mokuF={mokuF}

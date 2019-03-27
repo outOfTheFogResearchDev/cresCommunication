@@ -8,7 +8,8 @@ const Grid = styled.div`
     'sweep'
     'optimize';
   padding: 10px 10px;
-  width: 500px;
+  width: 350px;
+  margin-top: 10px;
   border-style: solid;
   border-color: #ddd;
   justify-self: center;
@@ -72,6 +73,7 @@ export default ({
       <label htmlFor="mokuF">
         {'Frequency: '}
         <input
+          style={{ width: '75px' }}
           type="number"
           name="mokuF"
           id="mokuF"
@@ -82,9 +84,11 @@ export default ({
           onChange={inputChange}
         />
       </label>
+      <br />
       <label htmlFor="mokuA">
         {' Amplitude: '}
         <input
+          style={{ width: '75px' }}
           type="number"
           name="mokuA"
           id="mokuA"
@@ -95,9 +99,11 @@ export default ({
           onChange={inputChange}
         />
       </label>
+      <br />
       <label htmlFor="mokuP">
         {' Phase: '}
         <input
+          style={{ marginLeft: '31px', width: '75px' }}
           type="number"
           name="mokuP"
           id="mokuP"
@@ -108,15 +114,16 @@ export default ({
           onChange={inputChange}
         />
       </label>
+      <br />
       <button
         type="submit"
-        style={{ marginLeft: '5px' }}
+        style={{ marginTop: '5px', marginLeft: '45px' }}
         onClick={e => {
           e.preventDefault();
           genSig();
         }}
       >
-        Gen Sig
+        Gen Signal
       </button>
     </SignalGen>
     <Sweep>
@@ -246,16 +253,6 @@ export default ({
     </Sweep>
     <Optimize>
       <div style={{ fontWeight: 'bold' }}>Optimize Frequency</div>
-      <button
-        style={{ marginTop: '5px' }}
-        type="submit"
-        onClick={e => {
-          e.preventDefault();
-          optimizeFrequency();
-        }}
-      >
-        {'Optimize'}
-      </button>
       <label htmlFor="optimizeF">
         {' Frequency: '}
         <input
@@ -342,6 +339,27 @@ export default ({
           onChange={inputChange}
         />
       </label>
+      <br />
+      <button
+        style={{ marginLeft: '8px', marginTop: '5px' }}
+        type="submit"
+        onClick={e => {
+          e.preventDefault();
+          optimizeFrequency('firmware');
+        }}
+      >
+        {'Optimize With Firmware'}
+      </button>
+      <button
+        style={{ marginLeft: '10px' }}
+        type="submit"
+        onClick={e => {
+          e.preventDefault();
+          optimizeFrequency();
+        }}
+      >
+        {'Optimize With Table'}
+      </button>
     </Optimize>
   </Grid>
 );

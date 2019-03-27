@@ -21,21 +21,21 @@ if (process.env.TYPE !== 'exe') {
 const api = Router();
 
 api.post('/connect', async (req, res) => {
-  // if (getOperating()) {
-  //   res.sendStatus(200);
-  //   return;
-  // }
-  // inOperation();
-  // console.log('connecting'); // eslint-disable-line no-console
-  // if (process.env.TYPE !== 'exe' && !moku.connected) {
-  //   await moku.connect();
-  //   console.log('moku'); // eslint-disable-line no-console
-  // }
-  // if (!telnet.connected) {
-  //   await telnet.connect();
-  //   console.log('telnet'); // eslint-disable-line no-console
-  // }
-  // outOperation();
+  if (getOperating()) {
+    res.sendStatus(200);
+    return;
+  }
+  inOperation();
+  console.log('connecting'); // eslint-disable-line no-console
+  if (process.env.TYPE !== 'exe' && !moku.connected) {
+    await moku.connect();
+    console.log('moku'); // eslint-disable-line no-console
+  }
+  if (!telnet.connected) {
+    await telnet.connect();
+    console.log('telnet'); // eslint-disable-line no-console
+  }
+  outOperation();
   res.sendStatus(201);
 });
 

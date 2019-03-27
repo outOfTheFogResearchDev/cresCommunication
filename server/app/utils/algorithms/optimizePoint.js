@@ -78,7 +78,13 @@ const getGrid = async (frequency, power, degrees, amp, phase, ps1, ps2, pd, iter
 module.exports = async (frequency, power, degrees, usingTable) => {
   await moku.setPoint(frequency, power, degrees);
   await ms(10);
-  const { amp, phase, ps1, ps2, pd } = await applyTable('fine', usingTable);
+  let amp;
+  let phase;
+  let ps1;
+  let ps2;
+  let pd;
+  if (usingTable === 'firmware') ({ amp, phase, ps1, ps2, pd } = await telnet.parseGlobalStat());
+  else ({ amp, phase, ps1, ps2, pd } = await applyTable('fine', usingTable));
   const lowest = await getGrid(frequency, power, degrees, amp, phase, ps1, ps2, pd);
   return lowest;
 };

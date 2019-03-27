@@ -58,18 +58,32 @@ module.exports = async (type, usingTable) => {
     ) {
       [, , , , , ps1, ps2, pd] = closest;
     } else {
-      ps1 = Math.round(
-        (1 - Math.abs(closest[4] - phase) / Math.abs(closest[4] - otherCorner[4])) * closest[5] +
-          (1 - Math.abs(otherCorner[4] - phase) / Math.abs(closest[4] - otherCorner[4])) * otherCorner[5]
-      );
-      ps2 = Math.round(
-        (1 - Math.abs(closest[4] - phase) / Math.abs(closest[4] - otherCorner[4])) * closest[6] +
-          (1 - Math.abs(otherCorner[4] - phase) / Math.abs(closest[4] - otherCorner[4])) * otherCorner[6]
-      );
-      pd = Math.round(
-        (1 - Math.abs(closest[3] - amp) / Math.abs(closest[3] - otherCorner[3])) * closest[7] +
-          (1 - Math.abs(otherCorner[3] - amp) / Math.abs(closest[3] - otherCorner[3])) * otherCorner[7]
-      );
+      if (Math.abs(closest[4] - otherCorner[4]) === 0) {
+        [, , , , , ps1, ps2] = closest;
+      } else {
+        ps1 = Math.round(
+          (1 - Math.abs(closest[4] - phase) / Math.abs(closest[4] - otherCorner[4])) * closest[5] +
+            (1 - Math.abs(otherCorner[4] - phase) / Math.abs(closest[4] - otherCorner[4])) * otherCorner[5]
+        );
+        ps2 = Math.round(
+          (1 - Math.abs(closest[4] - phase) / Math.abs(closest[4] - otherCorner[4])) * closest[6] +
+            (1 - Math.abs(otherCorner[4] - phase) / Math.abs(closest[4] - otherCorner[4])) * otherCorner[6]
+        );
+      }
+      if (Math.abs(closest[3] - otherCorner[3]) === 0) {
+        [, , , , , , , pd] = closest;
+      } else {
+        pd = Math.round(
+          (1 - Math.abs(closest[3] - amp) / Math.abs(closest[3] - otherCorner[3])) * closest[7] +
+            (1 - Math.abs(otherCorner[3] - amp) / Math.abs(closest[3] - otherCorner[3])) * otherCorner[7]
+        );
+      }
+      if ((ps1 < closest[5] && ps1 < otherCorner[5]) || (ps1 > closest[5] && ps1 > otherCorner[5])) {
+        ps1 = Math.round((closest[5] + otherCorner[5]) / 2);
+      }
+      if ((ps2 < closest[6] && ps2 < otherCorner[6]) || (ps2 > closest[6] && ps2 > otherCorner[6])) {
+        ps2 = Math.round((closest[6] + otherCorner[6]) / 2);
+      }
       if ((pd < closest[7] && pd < otherCorner[7]) || (pd > closest[7] && pd > otherCorner[7])) {
         pd = Math.round((closest[7] + otherCorner[7]) / 2);
       }

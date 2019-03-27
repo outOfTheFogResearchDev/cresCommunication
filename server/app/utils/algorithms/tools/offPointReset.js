@@ -17,6 +17,7 @@ module.exports = async frequency => {
     grid[row].forEach(cell => {
       const newCell = cell.slice();
       if (Math.abs(cell[7] - median) > 10) newCell[7] = median;
+      newCell[cell[5] > cell[6] ? 6 : 5] = 0;
       newTable.push(newCell);
     });
   });
