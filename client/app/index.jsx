@@ -42,9 +42,10 @@ export default class extends Component {
     const {
       data: { env },
     } = await get('/env');
+    const that = this;
     this.setState({ env }, async () => {
       await post('/api/connect');
-      this.setState({ response: ['hi'] });
+      that.setState({ response: ['hi'] });
     });
   }
 
@@ -125,7 +126,6 @@ export default class extends Component {
       optimizePH,
       optimizeWithT,
     } = this.state;
-    console.log(env);
     return !env ? null : (
       <Fragment>
         <form>

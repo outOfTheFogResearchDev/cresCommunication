@@ -8,14 +8,17 @@ const { readTable } = require('../csv');
 module.exports = async (type, usingTable) => {
   const { frequency, amp, phase } = await telnet.parseGlobalStat();
   const table = await readTable(
-    `${__dirname}/${process.env.TYPE === 'exe' ? 'tools/grid' : 'local'}/${usingTable || frequency}_MHz.csv`
+    `${__dirname}/${process.env.TYPE === 'exe' ? 'tools/grid' : 'local'}/${
+      frequency === usingTable ? 'temp/fixed.csv' : `${usingTable || frequency}_MHz.csv`
+    }`
   );
   let closest = [];
   let closestDistance = 0;
   table.forEach(cell => {
-    const d1 = Math.sqrt(Math.abs((amp - +cell[3]) ** 2 + (phase - +cell[4]) ** 2));
-    const d2 = phase < 300 ? Math.sqrt(Math.abs((amp - +cell[3]) ** 2 + (phase + 6450 - +cell[4]) ** 2)) : d1;
-    const d3 = phase > 6100 ? Math.sqrt(Math.abs((amp - +cell[3]) ** 2 + (phase - 6450 - +cell[4]) ** 2)) : d1;
+    const d1 = Math.sqrt(Math.abs(((amp - +cell[3]) * 3.225) ** 2 + (phase - +cell[4]) ** 2));
+    const d2 = phase < 300 ? Math.sqrt(Math.abs(((amp - +cell[3]) * 3.225) ** 2 + (phase + 6450 - +cell[4]) ** 2)) : d1;
+    const d3 =
+      phase > 6100 ? Math.sqrt(Math.abs(((amp - +cell[3]) * 3.225) ** 2 + (phase - 6450 - +cell[4]) ** 2)) : d1;
     const distance = Math.min(d1, d2, d3);
     if (!closest.length || distance < closestDistance) {
       closest = cell;

@@ -72,4 +72,21 @@ module.exports = {
   getPoints: () => readCsv.catch(() => [null, null, null, null]),
   readTable: frequencyLocation =>
     new Promise(resolve => readFile(frequencyLocation, 'utf8').then(csv => csvRead(csv, (err, data) => resolve(data)))),
+  writeTemp: async (points, location) => {
+    try {
+      await stat(`${location}/temp`);
+    } catch (e) {
+      await mkdir(`${location}/temp`);
+    }
+    const csv = await new Promise(resolve => csvWrite(points, (err, data) => resolve(data)));
+    await writeFile(`${location}/temp/fixed.csv`, csv);
+  },
+  clearTemp: async location => {
+    try {
+      await stat(`${location}/temp`);
+    } catch (e) {
+      await mkdir(`${location}/temp`);
+    }
+    await deleteFolder(`${location}/temp`);
+  },
 };
