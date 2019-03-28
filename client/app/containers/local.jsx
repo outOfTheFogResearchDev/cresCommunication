@@ -3,13 +3,14 @@ import styled from 'styled-components';
 
 const Grid = styled.div`
   display: grid;
+  grid-area: local;
   grid:
-    'signal'
-    'sweep'
-    'optimize';
+    'signal sweep'
+    'signal optimize';
   padding: 10px 10px;
-  width: 350px;
+  width: 550px;
   margin-top: 10px;
+  gap: 10px;
   border-style: solid;
   border-color: #ddd;
   justify-self: center;
@@ -28,7 +29,6 @@ const SignalGen = styled.form`
 const Sweep = styled.form`
   grid-area: sweep;
   padding: 10px 10px;
-  margin-top: 10px;
   border-color: '#000';
   border-style: double;
   justify-self: center;
@@ -38,7 +38,6 @@ const Sweep = styled.form`
 const Optimize = styled.form`
   grid-area: optimize;
   padding: 10px 10px;
-  margin-top: 10px;
   border-color: '#000';
   border-style: double;
   justify-self: center;
@@ -73,7 +72,7 @@ export default ({
       <label htmlFor="mokuF">
         {'Frequency: '}
         <input
-          style={{ width: '75px' }}
+          style={{ marginLeft: '1px', width: '75px' }}
           type="number"
           name="mokuF"
           id="mokuF"
@@ -103,7 +102,7 @@ export default ({
       <label htmlFor="mokuP">
         {' Phase: '}
         <input
-          style={{ marginLeft: '31px', width: '75px' }}
+          style={{ marginLeft: '32px', width: '75px' }}
           type="number"
           name="mokuP"
           id="mokuP"
@@ -285,7 +284,7 @@ export default ({
       <label htmlFor="optimizeAL">
         {'Amplitude: from '}
         <input
-          style={{ marginTop: '5px', width: '75px' }}
+          style={{ marginLeft: '1px', marginTop: '5px', width: '75px' }}
           type="number"
           name="optimizeAL"
           id="optimizeAL"
@@ -299,7 +298,7 @@ export default ({
       <label htmlFor="optimizeAH">
         {' to '}
         <input
-          style={{ width: '75px' }}
+          style={{ marginLeft: '-1px', width: '75px' }}
           type="number"
           name="optimizeAH"
           id="optimizeAH"
@@ -328,7 +327,7 @@ export default ({
       <label htmlFor="optimizePH">
         {' to '}
         <input
-          style={{ marginLeft: '-1px', width: '75px' }}
+          style={{ width: '75px' }}
           type="number"
           name="optimizePH"
           id="optimizePH"

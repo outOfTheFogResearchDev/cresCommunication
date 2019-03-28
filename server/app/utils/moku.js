@@ -26,10 +26,7 @@ module.exports = {
       await this.gracefulShutdown();
       await this.connect();
     }
-    let code = Math.floor((frequency - 102.5) / 5);
-    if (code < 0) code = 0;
-    if (code > 18) code = 18;
-    await telnet.write(`SetFreq ${code}`);
+    await telnet.setFreq(frequency);
     await this.genPhase({ channel: 1, frequency, power: power > 0 ? power : 0, degrees: degrees > 0 ? degrees : 0 });
     await this.genPhase({
       channel: 2,

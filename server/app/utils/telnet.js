@@ -11,6 +11,12 @@ module.exports = {
       _return = resolve;
       telnet.write(`${command}\r\n`);
     }),
+  async setFreq(frequency) {
+    let code = Math.floor((frequency - 102.5) / 5);
+    if (code < 0) code = 0;
+    if (code > 18) code = 18;
+    await this.write(`SetFreq ${code}`);
+  },
   async parseGlobalStat() {
     const globalStat = await this.write('GlobalStat');
     let index = globalStat.indexOf('Frequency:');

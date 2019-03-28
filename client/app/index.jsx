@@ -1,11 +1,32 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 import { get, post } from 'axios';
+import styled from 'styled-components';
 import Local from './containers/local';
 import Command from './containers/command';
+import CresControl from './containers/cresControl';
+
+const Container = styled.div`
+  display: grid;
+  margin: 15px 5px;
+  height: 600px;
+  gap: 10px;
+`;
+
+const ResponseContainer = styled.div`
+  grid-area: response;
+  font-size: 150%;
+`;
+
+const Response = styled.pre`
+  border: 1px solid black;
+  padding: 10px 10px;
+`;
 
 const ping = async () => {
   await post('/ping');
 };
+
+const isNumeric = num => +num === +num; // eslint-disable-line no-self-compare
 
 export default class extends Component {
   constructor(props) {
@@ -13,6 +34,11 @@ export default class extends Component {
     this.state = {
       response: [],
       env: null,
+      manualFrequency: 150,
+      manualTuningMode: 'firmware',
+      ps1: 0,
+      ps2: 0,
+      pd: 0,
       command: '',
       mokuF: 150,
       mokuA: 0,
@@ -32,11 +58,19 @@ export default class extends Component {
       optimizeWithT: 150,
     };
 
-    this.optimizeFrequency = this.optimizeFrequency.bind(this);
-    this.enterCommand = this.enterCommand.bind(this);
-    this.sweep = this.sweep.bind(this);
-    this.genSig = this.genSig.bind(this);
-    this.inputChange = this.inputChange.bind(this);
+    [
+      'manualFrequencyEnter',
+      'manualEnter',
+      'optimizeFrequency',
+      'enterCommand',
+      'globalStat',
+      'sweep',
+      'genSig',
+      'inputChange',
+      'radioChange',
+    ].forEach(funcName => {
+      this[funcName] = this[funcName].bind(this);
+    });
   }
 
   async componentDidMount() {
@@ -47,8 +81,20 @@ export default class extends Component {
     const that = this;
     this.setState({ env }, async () => {
       await post('/api/connect');
-      that.setState({ response: ['hi'] });
+      that.setState({ response: 'Connected' });
     });
+  }
+
+  async manualFrequencyEnter() {
+    const { manualFrequency } = this.state;
+    await post('/api/manual_frequency', { manualFrequency });
+    this.setState({ response: 'Frequency Code Entered' });
+  }
+
+  async manualEnter() {
+    const { ps1, ps2, pd } = this.state;
+    await post('/api/manual_codes', { ps1, ps2, pd });
+    this.setState({ response: 'Codes Entered' });
   }
 
   async enterCommand() {
@@ -56,6 +102,13 @@ export default class extends Component {
     const {
       data: { response },
     } = await get('/api/command', { params: { command } });
+    this.setState({ response });
+  }
+
+  async globalStat() {
+    const {
+      data: { response },
+    } = await get('/api/command', { params: { command: 'GlobalStat' } });
     this.setState({ response });
   }
 
@@ -68,12 +121,15 @@ export default class extends Component {
       optimizePH: phaseHigh,
       optimizeWithT,
     } = this.state;
-    const {
-      data: { response },
-    } = await get('/api/optimizeFrequency', {
-      params: { frequency, ampLow, ampHigh, phaseLow, phaseHigh, usingTable: type || optimizeWithT },
+    await post('/api/optimizeFrequency', {
+      frequency,
+      ampLow,
+      ampHigh,
+      phaseLow,
+      phaseHigh,
+      usingTable: type || optimizeWithT,
     });
-    this.setState({ response });
+    this.setState({ response: 'Frequency Optimized' });
   }
 
   async sweep(name) {
@@ -86,12 +142,17 @@ export default class extends Component {
       sweepHP: phaseHigh,
       sweepPQ: pointsQuantity,
     } = this.state;
-    const {
-      data: { response },
-    } = await get(`/api/gen_points/${name}`, {
-      params: { freqLow, freqHigh, ampLow, ampHigh, phaseLow, phaseHigh, pointsQuantity, type: 'fine' },
+    await post(`/api/gen_points/${name}`, {
+      freqLow,
+      freqHigh,
+      ampLow,
+      ampHigh,
+      phaseLow,
+      phaseHigh,
+      pointsQuantity,
+      type: 'fine',
     });
-    this.setState({ response });
+    this.setState({ response: 'Sweep Complete' });
   }
 
   async genSig() {
@@ -102,14 +163,26 @@ export default class extends Component {
     this.setState({ response: point });
   }
 
-  async inputChange({ target: { name, value } }) {
-    this.setState({ [name]: value });
+  inputChange({ target: { name, value } }) {
+    this.setState({ [name]: isNumeric(value) ? +value : value });
+  }
+
+  async radioChange({ target: { name, value } }) {
+    if (value === 'software') await post('/api/software');
+    else if (value === 'firmware') await post('/api/firmware');
+    else if (value === 'manual') await post('/api/stop_polling');
+    this.inputChange({ target: { name, value } });
   }
 
   render() {
     const {
       response,
       env,
+      manualFrequency,
+      manualTuningMode,
+      ps1,
+      ps2,
+      pd,
       command,
       mokuF,
       mokuA,
@@ -129,8 +202,28 @@ export default class extends Component {
       optimizeWithT,
     } = this.state;
     return !env ? null : (
-      <Fragment>
-        <Command command={command} inputChange={this.inputChange} enterCommand={this.enterCommand} />
+      <Container
+        style={{
+          grid: `'manual command' '${env === 'exe' ? 'manual' : 'local'} response'`,
+        }}
+      >
+        <CresControl
+          inputChange={this.inputChange}
+          radioChange={this.radioChange}
+          manualFrequency={manualFrequency}
+          manualFrequencyEnter={this.manualFrequencyEnter}
+          manualTuningMode={manualTuningMode}
+          ps1={ps1}
+          ps2={ps2}
+          pd={pd}
+          manualEnter={this.manualEnter}
+        />
+        <Command
+          command={command}
+          inputChange={this.inputChange}
+          enterCommand={this.enterCommand}
+          globalStat={this.globalStat}
+        />
         {env === 'exe' ? null : (
           <Local
             mokuF={mokuF}
@@ -155,8 +248,10 @@ export default class extends Component {
             optimizePH={optimizePH}
           />
         )}
-        <p>{response}</p>
-      </Fragment>
+        <ResponseContainer>
+          <Response>{response}</Response>
+        </ResponseContainer>
+      </Container>
     );
   }
 }

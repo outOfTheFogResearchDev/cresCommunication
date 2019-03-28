@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 const Container = styled.div`
+  grid-area: command;
   padding: 10px 10px;
   width: 310px;
   border-color: '#000';
@@ -10,7 +11,7 @@ const Container = styled.div`
   align-self: center;
 `;
 
-export default ({ command, inputChange, enterCommand }) => (
+export default ({ command, inputChange, enterCommand, globalStat }) => (
   <Container>
     <form>
       <div style={{ fontWeight: 'bold' }}>Telnet</div>
@@ -26,6 +27,17 @@ export default ({ command, inputChange, enterCommand }) => (
         }}
       >
         Submit
+      </button>
+      <br />
+      <button
+        style={{ marginTop: '10px' }}
+        type="submit"
+        onClick={e => {
+          e.preventDefault();
+          globalStat();
+        }}
+      >
+        Global Stat
       </button>
     </form>
   </Container>
