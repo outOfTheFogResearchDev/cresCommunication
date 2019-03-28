@@ -31,7 +31,7 @@ const getGrid = async (frequency, power, degrees, amp, phase, ps1, ps2, pd, iter
     prevWasTopSide ? (ps1 > ps2 ? ps1 : ps2) - times : (ps1 > ps2 ? ps1 : ps2) + times,
     prevWasTopSide ? -1 : 1,
     async (i, checkSide) => {
-      if (checkSide && iteration > 0 && lowTracker < [-60, -50, -40][iteration]) return 'stop loop';
+      if (checkSide && iteration > 0 && lowTracker < [-60, -50, -40][iteration - 1]) return 'stop loop';
       if (i < 0 || i > 511) return false;
       grid.push([]);
       const index = grid.length - 1;
