@@ -127,7 +127,7 @@ if (process.env.TYPE !== 'exe') {
       return;
     }
     inOperation();
-    await optimizeFrequency(+frequency, +ampLow, +ampHigh, +phaseLow, +phaseHigh, +usingTable);
+    await optimizeFrequency(+frequency, +ampLow, +ampHigh, +phaseLow, +phaseHigh, +usingTable || usingTable);
     outOperation();
     res.status(200).send({ response: 'done' });
   });
