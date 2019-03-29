@@ -156,7 +156,7 @@ if (process.env.TYPE !== 'exe') {
   });
 
   api.post('/optimizeFrequency', async (req, res) => {
-    const { frequency, ampLow, ampHigh, phaseLow, phaseHigh, usingTable } = req.query;
+    const { frequency, ampLow, ampHigh, phaseLow, phaseHigh, usingTable } = req.body;
     if (getOperating()) {
       res.sendStatus(201);
       return;
