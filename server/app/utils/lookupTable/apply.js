@@ -5,8 +5,11 @@ const { readTable } = require('../csv');
  * type = coarse
  * type = fine
  */
-module.exports = async (type, usingTable) => {
+module.exports = async (type, usingTable, prevAmp, prevPhase) => {
   const { frequency, amp, phase } = await telnet.parseGlobalStat();
+  if (prevAmp && prevPhase && Math.abs(amp - prevAmp) < 3 && Math.abs(phase - prevPhase) < 3) {
+    return { amp: prevAmp, phase: prevPhase };
+  }
   const table = await readTable(
     `${__dirname}/${process.env.TYPE === 'exe' ? 'tools/grid' : 'local'}/${
       frequency === usingTable ? 'temp/fixed.csv' : `${usingTable || frequency}_MHz.csv`

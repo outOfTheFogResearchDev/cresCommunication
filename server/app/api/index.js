@@ -58,7 +58,7 @@ api.post('/stop_polling', async (req, res) => {
 });
 
 api.post('/software', async (req, res) => {
-  startPolling();
+  await startPolling();
   res.sendStatus(201);
 });
 
