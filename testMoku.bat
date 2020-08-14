@@ -13,13 +13,17 @@ goto setup
     goto channel
 
 :runfirst
-    curl -X GET "http://localhost:5000/gen?channel=1&frequency=2&power=3&degrees=4"
+    curl -X GET "http://localhost:5000/gen/?channel=1&frequency=2&power=3&degrees=4"
+    echo.
+    echo.
     goto channel
 
 :runsecond
-    curl -X GET "http://localhost:5000/gen?channel=2&frequency=2&power=3&degrees=4"
+    curl -X GET "http://localhost:5000/gen/?channel=2&frequency=2&power=3&degrees=4"
+    echo.
+    echo.
     goto channel
 
 :done
-    curl -X GET "http://localhost:5000/shutdown"
+    curl -X GET "http://localhost:5000/shutdown/"
     exit /b
