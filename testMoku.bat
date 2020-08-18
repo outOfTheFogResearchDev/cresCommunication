@@ -1,6 +1,8 @@
 @echo off
 goto setup
 :setup
+    start moku list
+    start moku list
     start python .\server\app\utils\python\mokuConnection.py 
     goto channel
 
