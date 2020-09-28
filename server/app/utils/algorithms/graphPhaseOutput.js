@@ -16,6 +16,8 @@ module.exports = async freq => {
     console.log('telnet'); // eslint-disable-line no-console
   }
 
+  await telnet.setFreq(freq);
+
   await telnet.write(`mp 0 1 0 `);
   await telnet.write(`mp 0 2 0 `);
   await telnet.write(`mp 0 3 0 `);
@@ -25,6 +27,7 @@ module.exports = async freq => {
   const data = [];
 
   await asyncLoop(0, 359, 1, async degrees => {
+    console.log(`GlobalStat for ${degrees} degrees.`); // eslint-disable-line no-console
     await moku.setPoint(freq, 0, degrees);
     await ms(10);
     const { frequency, phase1, phase2, phase } = await telnet.parseGlobalStat();
