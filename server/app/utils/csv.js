@@ -69,6 +69,9 @@ module.exports = {
     writeCsv(points, () => pointOptimizeLocation(frequency, i, j));
   },
   concatCsv,
+  async storePhaseGraph(data, frequency) {
+    writeCsv(data, () => csvLocation(`${frequency}_PhaseGraph`));
+  },
   getPoints: () => readCsv.catch(() => [null, null, null, null]),
   readTable: frequencyLocation =>
     new Promise(resolve => readFile(frequencyLocation, 'utf8').then(csv => csvRead(csv, (err, data) => resolve(data)))),
