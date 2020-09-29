@@ -40,6 +40,7 @@ export default class extends Component {
       ps2: 0,
       pd: 0,
       command: '',
+      phaseGraphF: 150,
       mokuF: 150,
       mokuA: 0,
       mokuP: 0,
@@ -64,6 +65,7 @@ export default class extends Component {
       'optimizeFrequency',
       'enterCommand',
       'globalStat',
+      'graphPhaseOutput',
       'sweep',
       'genSig',
       'inputChange',
@@ -110,6 +112,13 @@ export default class extends Component {
       data: { response },
     } = await get('/api/command', { params: { command: 'GlobalStat' } });
     this.setState({ response });
+  }
+
+  async graphPhaseOutput(full = false) {
+    const { phaseGraphF: frequency } = this.state;
+    if (full) await post(`/api/graphPhase`);
+    else await post(`/api/graphPhase`, { frequency });
+    this.setState({ response: 'Graph Complete' });
   }
 
   async optimizeFrequency(type) {
@@ -184,6 +193,7 @@ export default class extends Component {
       ps2,
       pd,
       command,
+      phaseGraphF,
       mokuF,
       mokuA,
       mokuP,
@@ -223,6 +233,9 @@ export default class extends Component {
           inputChange={this.inputChange}
           enterCommand={this.enterCommand}
           globalStat={this.globalStat}
+          env={env}
+          phaseGraphF={phaseGraphF}
+          graphPhaseOutput={this.graphPhaseOutput}
         />
         {env === 'exe' ? null : (
           <Local
