@@ -12,11 +12,13 @@ let resetAnalyzer;
 let moku;
 let genRandomPoints;
 let optimizeFrequency;
+let graphPhaseOutput;
 if (process.env.TYPE !== 'exe') {
   ({ getPower, setAnalyzer, resetAnalyzer } = require('../utils/cpp'));
   moku = require('../utils/moku');
   genRandomPoints = require('../utils/algorithms/genRandomPoints');
   optimizeFrequency = require('../utils/algorithms/optimizeFrequency');
+  graphPhaseOutput = require('../utils/algorithms/graphPhaseOutput');
 }
 
 const api = Router();
@@ -163,6 +165,19 @@ if (process.env.TYPE !== 'exe') {
     }
     inOperation();
     await optimizeFrequency(frequency, ampLow, ampHigh, phaseLow, phaseHigh, usingTable || usingTable);
+    outOperation();
+    res.sendStatus(201);
+  });
+
+  api.post('/graphPhase', async (req, res) => {
+    const { frequency } = req.body;
+    if (getOperating()) {
+      res.status(201);
+      return;
+    }
+    inOperation();
+    if (frequency) graphPhaseOutput(+frequency);
+    else graphPhaseOutput.runAll();
     outOperation();
     res.sendStatus(201);
   });
