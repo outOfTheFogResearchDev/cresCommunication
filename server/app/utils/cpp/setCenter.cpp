@@ -30,7 +30,7 @@ void setCenter(const FunctionCallbackInfo<Value> &args)
 
 void init(Local<Object> exports, Local<Object> method)
 {
-    NODE_SET_METHOD(method, "exports", setAnalyzer);
+    NODE_SET_METHOD(method, "exports", setCenter);
 }
 
 NODE_MODULE(NODE_GYP_MODULE_NAME, init);
