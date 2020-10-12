@@ -14,9 +14,6 @@ module.exports = async (frequency, ampLow, ampHigh, phaseLow, phaseHigh) => {
     await asyncLoop(phaseLow, phaseHigh, 360 / 80, async j => {
       if (point.length) {
         point = await optimizePoint(frequency, i, j, point);
-        if (point[9] > -30) {
-          point = await optimizePoint(frequency, i, j);
-        }
       } else {
         point = await optimizePoint(frequency, i, j);
       }
