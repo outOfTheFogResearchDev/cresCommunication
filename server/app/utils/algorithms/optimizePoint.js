@@ -43,9 +43,11 @@ const getGrid = async (frequency, power, degrees, amp, phase, ps1, iteration = 0
         data = await getPower();
       } catch (e) {
         try {
+          console.log('getPower 1 failed'); // eslint-disable-line no-console
           await ms(1000);
           data = await getPower();
         } catch (er) {
+          console.log('getPower 2 failed'); // eslint-disable-line no-console
           data = 0;
         }
       }
