@@ -60,11 +60,13 @@ const getGrid = async (frequency, power, degrees, amp, phase, ps1, iteration = 0
   return iteration === 2 ? lowest : getGrid(frequency, power, degrees, amp, phase, ps1, iteration + 1, lowest);
 };
 
-module.exports = async (frequency, power, degrees) => {
+module.exports = async (frequency, power, degrees, prevPoint = []) => {
   console.log(power, degrees); // eslint-disable-line no-console
   await moku.setPoint(frequency, power, degrees);
   await ms(10);
   const { amp, phase, ps1, ps2 } = await telnet.parseGlobalStat();
   await telnet.write(`mp 1 ${ps1 > ps2 ? 2 : 1} 0 `);
-  return getGrid(frequency, power, degrees, amp, phase, ps1 > ps2);
+  return prevPoint.length
+    ? getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, 1, prevPoint)
+    : getGrid(frequency, power, degrees, amp, phase, ps1 > ps2);
 };
