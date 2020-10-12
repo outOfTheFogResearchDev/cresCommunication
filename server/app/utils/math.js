@@ -3,7 +3,7 @@ const min = (array, index) =>
 
 const asyncLoop = async (i, stop, incrimenter, cb, s) => {
   const m = incrimenter > 0 ? 1 : -1;
-  if (!incrimenter || i * m > stop * m) return;
+  if (!incrimenter || i * m > stop * m) return null;
   let offset = 0;
   if (s) {
     const [skip, center] = s;
@@ -12,8 +12,8 @@ const asyncLoop = async (i, stop, incrimenter, cb, s) => {
     }
   }
   const done = await cb(i + offset, offset ? 'check side' : null);
-  if (done) return;
-  await asyncLoop(i + offset + incrimenter, stop, incrimenter, cb, s);
+  if (done) return done;
+  return asyncLoop(i + offset + incrimenter, stop, incrimenter, cb, s);
 };
 
 module.exports = {
