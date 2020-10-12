@@ -13,7 +13,7 @@ void resetAnalyzer(const FunctionCallbackInfo<Value> &args)
     ViStatus viStatus = 0;
 
     viStatus = viOpenDefaultRM(&defaultRM);
-    viStatus = viOpen(defaultRM, "GPIB0::16::INSTR", VI_NULL, VI_NULL, &viMXA);
+    viStatus = viOpen(defaultRM, "GPIB2::16::INSTR", VI_NULL, VI_NULL, &viMXA);
 
     if (viStatus)
         return;

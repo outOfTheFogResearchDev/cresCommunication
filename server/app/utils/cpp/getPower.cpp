@@ -3,7 +3,7 @@
 
 using namespace v8;
 
-void setAnalyzer(const FunctionCallbackInfo<Value> &args)
+void getPower(const FunctionCallbackInfo<Value> &args)
 {
     Isolate *isolate = args.GetIsolate();
 
@@ -13,7 +13,7 @@ void setAnalyzer(const FunctionCallbackInfo<Value> &args)
     ViStatus viStatus = 0;
 
     viStatus = viOpenDefaultRM(&defaultRM);
-    viStatus = viOpen(defaultRM, "GPIB0::16::INSTR", VI_NULL, VI_NULL, &viMXA);
+    viStatus = viOpen(defaultRM, "GPIB2::16::INSTR", VI_NULL, VI_NULL, &viMXA);
 
     if (viStatus)
         return;
