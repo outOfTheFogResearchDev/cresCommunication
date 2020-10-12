@@ -31,10 +31,12 @@ const getGrid = async (frequency, power, degrees, amp, phase, ps1, iteration = 0
     step = 1;
   }
   await asyncLoop(psStart, psStop, step, async i => {
+    if (i < 0 || i > 511) return null;
     grid.push([]);
     const index = grid.length - 1;
     await telnet.write(`mp 1 ${ps1 ? 1 : 2} ${i} `);
     return asyncLoop(pdStart, pdStop, step, async j => {
+      if (j < 0 || j > 511) return null;
       grid[index].push([frequency, power, degrees, amp, phase, ps1 ? i : 0, ps1 ? 0 : i, j]);
       await telnet.write(`mp 1 3 ${j} `);
       await ms(5);
