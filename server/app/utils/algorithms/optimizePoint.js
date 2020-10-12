@@ -70,14 +70,14 @@ module.exports = async (frequency, power, degrees, prevPoint = []) => {
   await ms(10);
   const { amp, phase, ps1, ps2 } = await telnet.parseGlobalStat();
   await telnet.write(`mp 1 ${ps1 > ps2 ? 2 : 1} 0 `);
-  let point = prevPoint.length
+  let point = await (prevPoint.length
     ? getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, 1, prevPoint)
-    : getGrid(frequency, power, degrees, amp, phase, ps1 > ps2);
+    : getGrid(frequency, power, degrees, amp, phase, ps1 > ps2));
   if (point[9] > -30 && prevPoint.length) {
-    point = getGrid(frequency, power, degrees, amp, phase, ps1 > ps2);
+    point = await getGrid(frequency, power, degrees, amp, phase, ps1 > ps2);
   }
   if (point[9] > -30) {
-    const alternativePoint = getGrid(frequency, power, degrees, amp, phase, ps2 > ps1);
+    const alternativePoint = await getGrid(frequency, power, degrees, amp, phase, ps2 > ps1);
     return point[9] < alternativePoint[9] ? point : alternativePoint;
   }
   return point;
