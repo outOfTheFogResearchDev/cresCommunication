@@ -7,7 +7,7 @@ const applyTable = require('../lookupTable/apply');
 const getPoint = async (frequency, power, degrees, type, tableType) => {
   await setCenter(frequency);
   await moku.setPoint(frequency, power, degrees);
-  await ms(10);
+  await ms(250);
   if (type === 'table') {
     await applyTable(tableType);
     await ms(10);
@@ -28,18 +28,9 @@ const genRandomPoints = async (
   fails
 ) => {
   if (!pointsQuantity) return [];
-  const frequency = random
-    .decimals(1)
-    .from(freqLow)
-    .to(freqHigh);
-  const power = random
-    .decimals(1)
-    .from(ampLow)
-    .to(ampHigh);
-  const degrees = random
-    .decimals(1)
-    .from(phaseLow)
-    .to(phaseHigh);
+  const frequency = random.decimals(1).from(freqLow).to(freqHigh);
+  const power = random.decimals(1).from(ampLow).to(ampHigh);
+  const degrees = random.decimals(1).from(phaseLow).to(phaseHigh);
   const rejection = await getPoint(frequency, power, degrees, type, tableType);
   const correctedRejection = rejection + (10 - Math.abs(power));
   const next = () =>
