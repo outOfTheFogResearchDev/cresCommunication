@@ -32,8 +32,8 @@ module.exports = async (type, usingTable, prevAmp, prevPhase) => {
   let ps1;
   let ps2;
   let pd;
-  const powerShift = type === 'fine' ? 0.5 : 1;
-  const degreeShift = type === 'fine' ? 4.5 : 9;
+  const powerShift = 0.5; // type === 'fine' ? 0.5 : 1;
+  const degreeShift = 4.5; // type === 'fine' ? 4.5 : 9;
   const otherCornerPower = closest[1] + (amp - closest[3] > 0 ? powerShift : -1 * powerShift);
   const otherCornerDegree = closest[2] + (phase - closest[4] > 0 ? degreeShift : -1 * degreeShift);
   if (
