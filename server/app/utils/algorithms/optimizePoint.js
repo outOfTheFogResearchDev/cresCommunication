@@ -38,11 +38,11 @@ const getGrid = async (frequency, power, degrees, amp, phase, ps1, fresh, iterat
   } else if (!fresh) {
     if (iteration === 0) {
       // must have come from a flip
-      psStart = 25;
-      psStop = 475;
+      psStart = 16;
+      psStop = 491;
       pdStart = prevLowest[7]; // eslint-disable-line prefer-destructuring
       pdStop = prevLowest[7]; // eslint-disable-line prefer-destructuring
-      psStep = newPower ? 9 : 25;
+      psStep = 25;
       pdStep = 1;
     } else if (iteration === 1 && newPower) {
       psStart = prevLowest[ps1 ? 5 : 6] - 4;
@@ -68,13 +68,17 @@ const getGrid = async (frequency, power, degrees, amp, phase, ps1, fresh, iterat
     }
   }
 
-  await asyncLoop(psStart, psStop, psStep, async i => {
-    if (i < 0 || i > 511) return null;
+  await asyncLoop(psStart, psStop, psStep, async step => {
+    let i = step;
+    if (i < 0) i += 512;
+    if (i > 511) i -= 512;
     grid.push([]);
     const index = grid.length - 1;
     await telnet.write(`mp 1 ${ps1 ? 1 : 2} ${i} `);
-    return asyncLoop(pdStart, pdStop, pdStep, async j => {
-      if (j < 0 || j > 511) return null;
+    return asyncLoop(pdStart, pdStop, pdStep, async innerStep => {
+      let j = innerStep;
+      if (j < 0) j += 512;
+      if (j > 511) j -= 512;
       grid[index].push([frequency, power, degrees, amp, phase, ps1 ? i : 0, ps1 ? 0 : i, j]);
       await telnet.write(`mp 1 3 ${j} `);
       await ms(5);
@@ -87,8 +91,14 @@ const getGrid = async (frequency, power, degrees, amp, phase, ps1, fresh, iterat
           await ms(1000);
           data = await getPower();
         } catch (er) {
-          console.log('getPower 2 failed'); // eslint-disable-line no-console
-          data = 0;
+          try {
+            console.log('getPower 2 failed'); // eslint-disable-line no-console
+            await ms(60000);
+            data = await getPower();
+          } catch (err) {
+            console.log('getPower 3 failed'); // eslint-disable-line no-console
+            data = 0;
+          }
         }
       }
       grid[index][grid[index].length - 1].push(data);
@@ -113,8 +123,11 @@ module.exports = async (frequency, power, degrees, prevPoint, newPower) => {
     ? getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, false, 1, prevPoint, newPower)
     : getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, true));
   if (point[9] > -40) {
+    console.log('trying flip'); // eslint-disable-line no-console
     await telnet.write(`mp 1 ${ps2 > ps1 ? 2 : 1} 0 `);
-    const flipPoint = await getGrid(frequency, power, degrees, amp, phase, ps2 > ps1, false, 0, prevPoint, newPower);
+    const flipPoint = await (prevPoint.length
+      ? getGrid(frequency, power, degrees, amp, phase, ps2 > ps1, false, 0, prevPoint, newPower)
+      : getGrid(frequency, power, degrees, amp, phase, ps2 > ps1, true));
     return point[9] < flipPoint[9] ? point : flipPoint;
   }
   return point;

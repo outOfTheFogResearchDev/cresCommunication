@@ -57,7 +57,9 @@ module.exports = async (type, usingTable, prevAmp, prevPhase) => {
       (closest[5] === 0 && otherCorner[5] !== 0) ||
       (otherCorner[5] === 0 && closest[5] !== 0) ||
       (closest[6] === 0 && otherCorner[6] !== 0) ||
-      (otherCorner[6] === 0 && closest[6] !== 0)
+      (otherCorner[6] === 0 && closest[6] !== 0) ||
+      Math.abs(closest[5] - otherCorner[5]) > 25 ||
+      Math.abs(closest[6] - otherCorner[6]) > 25
     ) {
       [, , , , , ps1, ps2, pd] = closest;
     } else {
