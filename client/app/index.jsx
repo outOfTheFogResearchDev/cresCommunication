@@ -52,6 +52,8 @@ export default class extends Component {
       sweepHP: 180,
       sweepPQ: 150,
       optimizeF: 150,
+      optimizeFL: 105,
+      optimizeFH: 195,
       optimizeAL: -10,
       optimizeAH: 10,
       optimizePL: -180,
@@ -63,6 +65,7 @@ export default class extends Component {
       'manualFrequencyEnter',
       'manualEnter',
       'optimizeFrequency',
+      'optimizeFrequencies',
       'enterCommand',
       'globalStat',
       'graphPhaseOutput',
@@ -141,6 +144,28 @@ export default class extends Component {
     this.setState({ response: 'Frequency Optimized' });
   }
 
+  async optimizeFrequencies(type) {
+    const {
+      optimizeFL: frequencyLow,
+      optimizeFH: frequencyHigh,
+      optimizeAL: ampLow,
+      optimizeAH: ampHigh,
+      optimizePL: phaseLow,
+      optimizePH: phaseHigh,
+      optimizeWithT,
+    } = this.state;
+    await post('/api/optimizeFrequencies', {
+      frequencyLow,
+      frequencyHigh,
+      ampLow,
+      ampHigh,
+      phaseLow,
+      phaseHigh,
+      usingTable: type || optimizeWithT,
+    });
+    this.setState({ response: 'Frequency Optimized' });
+  }
+
   async sweep(name) {
     const {
       sweepLF: freqLow,
@@ -205,6 +230,8 @@ export default class extends Component {
       sweepHP,
       sweepPQ,
       optimizeF,
+      optimizeFL,
+      optimizeFH,
       optimizeAL,
       optimizeAH,
       optimizePL,
@@ -254,6 +281,9 @@ export default class extends Component {
             sweep={this.sweep}
             optimizeFrequency={this.optimizeFrequency}
             optimizeF={optimizeF}
+            optimizeFrequencies={this.optimizeFrequencies}
+            optimizeFL={optimizeFL}
+            optimizeFH={optimizeFH}
             optimizeWithT={optimizeWithT}
             optimizeAL={optimizeAL}
             optimizeAH={optimizeAH}

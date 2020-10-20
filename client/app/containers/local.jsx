@@ -58,9 +58,12 @@ export default ({
   sweepHP,
   sweepPQ,
   sweep,
-  optimizeFrequency,
-  optimizeF,
-  optimizeWithT,
+  // optimizeFrequency,
+  // optimizeF,
+  optimizeFrequencies,
+  optimizeFL,
+  optimizeFH,
+  // optimizeWithT,
   optimizeAL,
   optimizeAH,
   optimizePL,
@@ -252,7 +255,7 @@ export default ({
     </Sweep>
     <Optimize>
       <div style={{ fontWeight: 'bold' }}>Optimize Frequency</div>
-      <label htmlFor="optimizeF">
+      {/* <label htmlFor="optimizeF">
         {' Frequency: '}
         <input
           type="number"
@@ -279,12 +282,40 @@ export default ({
           step="5"
           onChange={inputChange}
         />
+      </label> */}
+      <label htmlFor="optimizeFL">
+        {' Frequency: from '}
+        <input
+          type="number"
+          style={{ marginLeft: '1px', marginTop: '3px', width: '75px' }}
+          name="optimizeFL"
+          value={optimizeFL}
+          id="optimizeFL"
+          min="105"
+          max="195"
+          step="5"
+          onChange={inputChange}
+        />
+      </label>
+      <label htmlFor="optimizeFH">
+        {' to '}
+        <input
+          type="number"
+          style={{ width: '75px' }}
+          name="optimizeFH"
+          value={optimizeFH}
+          id="optimizeFH"
+          min="105"
+          max="195"
+          step="5"
+          onChange={inputChange}
+        />
       </label>
       <br />
       <label htmlFor="optimizeAL">
         {'Amplitude: from '}
         <input
-          style={{ marginLeft: '1px', marginTop: '5px', width: '75px' }}
+          style={{ width: '75px' }}
           type="number"
           name="optimizeAL"
           id="optimizeAL"
@@ -298,7 +329,7 @@ export default ({
       <label htmlFor="optimizeAH">
         {' to '}
         <input
-          style={{ marginLeft: '-1px', width: '75px' }}
+          style={{ width: '75px' }}
           type="number"
           name="optimizeAH"
           id="optimizeAH"
@@ -313,7 +344,7 @@ export default ({
       <label htmlFor="optimizePL">
         {'Phase: from '}
         <input
-          style={{ marginLeft: '32px', width: '75px' }}
+          style={{ marginLeft: '31px', width: '75px' }}
           type="number"
           name="optimizePL"
           id="optimizePL"
@@ -339,7 +370,7 @@ export default ({
         />
       </label>
       <br />
-      <button
+      {/* <button
         style={{ marginLeft: '8px', marginTop: '5px' }}
         type="submit"
         onClick={e => {
@@ -348,16 +379,16 @@ export default ({
         }}
       >
         {'Optimize With Firmware'}
-      </button>
+      </button> */}
       <button
-        style={{ marginLeft: '10px' }}
+        style={{ marginLeft: '75px', marginTop: '5px' }}
         type="submit"
         onClick={e => {
           e.preventDefault();
-          optimizeFrequency();
+          optimizeFrequencies();
         }}
       >
-        {'Optimize With Table'}
+        {'Optimize Frequencies'}
       </button>
     </Optimize>
   </Grid>
