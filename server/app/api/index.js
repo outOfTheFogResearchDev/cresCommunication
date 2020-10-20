@@ -5,6 +5,7 @@ const { ms } = require('../utils/time');
 const applyTable = require('../utils/lookupTable/apply');
 const { startPolling, stopPolling } = require('../utils/algorithms/pollingSoftware');
 const { inOperation, outOperation, getOperating } = require('../ping/index');
+const { asyncLoop } = require('../utils/math');
 
 let getPower;
 let setAnalyzer;
@@ -169,6 +170,19 @@ if (process.env.TYPE !== 'exe') {
     res.sendStatus(201);
   });
 
+  api.post('/optimizeFrequencies', async (req, res) => {
+    const { frequencyLow, frequencyHigh, ampLow, ampHigh, phaseLow, phaseHigh, usingTable } = req.body;
+    if (getOperating()) {
+      res.sendStatus(201);
+      return;
+    }
+    inOperation();
+    await asyncLoop(frequencyLow, frequencyHigh, 5, async frequency => {
+      await optimizeFrequency(frequency, ampLow, ampHigh, phaseLow, phaseHigh, usingTable || usingTable);
+    });
+    outOperation();
+    res.sendStatus(201);
+  });
   api.post('/graphPhase', async (req, res) => {
     const { frequency } = req.body;
     if (getOperating()) {
