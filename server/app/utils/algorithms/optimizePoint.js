@@ -119,9 +119,26 @@ module.exports = async (frequency, power, degrees, prevPoint, newPower) => {
   const ps1 = prevPoint[5] || 0;
   const ps2 = prevPoint[6] || 1;
   await telnet.write(`mp 1 ${ps1 > ps2 ? 2 : 1} 0 `);
-  const point = await (prevPoint.length
+  let point = await (prevPoint.length
     ? getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, false, 1, prevPoint, newPower)
     : getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, true));
+  if (point[6] === 127 && prevPoint.length) {
+    const newPrevPoint = prevPoint;
+    newPrevPoint[6] = 150;
+    const checkPoint = await getGrid(
+      frequency,
+      power,
+      degrees,
+      amp,
+      phase,
+      ps1 > ps2,
+      false,
+      1,
+      newPrevPoint,
+      newPower
+    );
+    point = point[9] < checkPoint[9] ? point : checkPoint;
+  }
   if (point[9] > -40) {
     console.log('trying flip'); // eslint-disable-line no-console
     await telnet.write(`mp 1 ${ps2 > ps1 ? 2 : 1} 0 `);
