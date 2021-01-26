@@ -52,8 +52,8 @@ const getGrid = async (frequency, power, degrees, amp, phase, ps1, fresh, iterat
       psStep = 2;
       pdStep = 3;
     } else if (iteration === 1 && !newPower) {
-      psStart = prevLowest[ps1 ? 5 : 6] - 16;
-      psStop = prevLowest[ps1 ? 5 : 6] + 16;
+      psStart = ps1 ? prevLowest[5] - 16 : prevLowest[6];
+      psStop = ps1 ? prevLowest[5] : prevLowest[6] + 16;
       pdStart = prevLowest[7] - 4;
       pdStop = prevLowest[7] + 4;
       psStep = 4;
@@ -108,6 +108,13 @@ const getGrid = async (frequency, power, degrees, amp, phase, ps1, fresh, iterat
     });
   });
   const lowest = twoDMin(grid, 9);
+  if (!fresh && iteration === 0 && !newPower) {
+    const firstHalf = await getGrid(frequency, power, degrees, amp, phase, ps1, fresh, iteration + 1, lowest);
+    lowest[5] += ps1 ? 16 : 0;
+    lowest[6] -= ps1 ? 0 : 16;
+    const secondHalf = await getGrid(frequency, power, degrees, amp, phase, ps1, fresh, iteration + 1, lowest);
+    return firstHalf[9] < secondHalf[9] ? firstHalf : secondHalf;
+  }
   return iteration === 2 ? lowest : getGrid(frequency, power, degrees, amp, phase, ps1, fresh, iteration + 1, lowest);
 };
 
@@ -122,21 +129,16 @@ module.exports = async (frequency, power, degrees, prevPoint, newPower) => {
   let point = await (prevPoint.length
     ? getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, false, 1, prevPoint, newPower)
     : getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, true));
-  if (point[6] === 127 && prevPoint.length) {
+  if ((point[6] === 127 || point[6] === 255 || point[6] === 511) && prevPoint.length) {
     const newPrevPoint = prevPoint;
-    newPrevPoint[6] = 150;
-    const checkPoint = await getGrid(
-      frequency,
-      power,
-      degrees,
-      amp,
-      phase,
-      ps1 > ps2,
-      false,
-      1,
-      newPrevPoint,
-      newPower
-    );
+    newPrevPoint[6] = prevPoint[6] + (point[6] === 127 ? 8 : 16);
+    newPrevPoint[7] = prevPoint[7] + 3;
+    let checkPoint = await getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, false, 1, newPrevPoint, newPower);
+    point = point[9] < checkPoint[9] ? point : checkPoint;
+
+    newPrevPoint[6] = prevPoint[6] + (point[6] === 127 ? 16 : 32);
+    newPrevPoint[7] = prevPoint[7] + (point[6] === 127 ? 5 : 10);
+    checkPoint = await getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, false, 1, newPrevPoint, newPower);
     point = point[9] < checkPoint[9] ? point : checkPoint;
   }
   if (point[9] > -40) {
