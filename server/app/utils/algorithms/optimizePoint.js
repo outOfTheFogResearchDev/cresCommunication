@@ -141,7 +141,7 @@ module.exports = async (frequency, power, degrees, prevPoint, newPower) => {
     checkPoint = await getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, false, 1, newPrevPoint, newPower);
     point = point[9] < checkPoint[9] ? point : checkPoint;
   }
-  if ((point[5] === 128 || point[5] === 256 || point[5] === 512) && prevPoint.length) {
+  if ((point[5] === 128 || point[5] === 256) && prevPoint.length) {
     const newPrevPoint = prevPoint;
     newPrevPoint[5] = prevPoint[5] - (point[5] === 128 ? 8 : 16);
     newPrevPoint[7] = prevPoint[7] + (point[5] === 128 ? 3 : 5);
