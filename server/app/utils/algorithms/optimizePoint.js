@@ -132,7 +132,7 @@ module.exports = async (frequency, power, degrees, prevPoint, newPower) => {
   if ((point[6] === 127 || point[6] === 255 || point[6] === 511) && prevPoint.length) {
     const newPrevPoint = prevPoint;
     newPrevPoint[6] = prevPoint[6] + (point[6] === 127 ? 8 : 16);
-    newPrevPoint[7] = prevPoint[7] + 3;
+    newPrevPoint[7] = prevPoint[7] + (point[6] === 127 ? 3 : 5);
     let checkPoint = await getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, false, 1, newPrevPoint, newPower);
     point = point[9] < checkPoint[9] ? point : checkPoint;
 
@@ -141,7 +141,19 @@ module.exports = async (frequency, power, degrees, prevPoint, newPower) => {
     checkPoint = await getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, false, 1, newPrevPoint, newPower);
     point = point[9] < checkPoint[9] ? point : checkPoint;
   }
-  if (point[9] > -40) {
+  if ((point[5] === 128 || point[5] === 256 || point[5] === 512) && prevPoint.length) {
+    const newPrevPoint = prevPoint;
+    newPrevPoint[5] = prevPoint[5] - (point[5] === 128 ? 8 : 16);
+    newPrevPoint[7] = prevPoint[7] + (point[5] === 128 ? 3 : 5);
+    let checkPoint = await getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, false, 1, newPrevPoint, newPower);
+    point = point[9] < checkPoint[9] ? point : checkPoint;
+
+    newPrevPoint[5] = prevPoint[5] - (point[5] === 128 ? 16 : 32);
+    newPrevPoint[7] = prevPoint[7] + (point[5] === 128 ? 5 : 10);
+    checkPoint = await getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, false, 1, newPrevPoint, newPower);
+    point = point[9] < checkPoint[9] ? point : checkPoint;
+  }
+  if (point[9] > -35) {
     console.log('trying flip'); // eslint-disable-line no-console
     await telnet.write(`mp 1 ${ps2 > ps1 ? 2 : 1} 0 `);
     const flipPoint = await (prevPoint.length
