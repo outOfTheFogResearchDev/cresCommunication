@@ -4,7 +4,41 @@ const { getPower } = require('../cpp');
 const { ms } = require('../time');
 const { asyncLoop, twoDMin } = require('../math');
 
-const getGrid = async (frequency, power, degrees, amp, phase, ps1, fresh, iteration = 0, prevLowest, newPower) => {
+/*
+        First Point: 
+        # 511 or # 0
+Start:   -1       0
+
+  Stage -1: ps1 down
+  until: 0 511
+
+  New Stage Rotation:
+  Start: # 0
+
+  Stage 0: ps2 up
+  until: # #
+
+  Stage 1: ps1 down
+  until: 0 #
+
+  Stage 2: ps2 up
+  until: 0 511
+
+  Go to Stage 1
+*/
+
+const getGrid = async (
+  frequency,
+  power,
+  degrees,
+  amp,
+  phase,
+  prevLowest,
+  Stage,
+  newPower,
+  iteration = 0,
+  fresh = false
+) => {
   const grid = [];
   let psStart;
   let psStop;
@@ -13,73 +47,82 @@ const getGrid = async (frequency, power, degrees, amp, phase, ps1, fresh, iterat
   let psStep;
   let pdStep;
   if (fresh) {
-    if (iteration === 0) {
+    if (iteration === -1) {
       psStart = 25;
       psStop = 475;
-      pdStart = 25;
-      pdStop = 475;
       psStep = 50;
-      pdStep = 50;
-    } else if (iteration === 1) {
-      psStart = prevLowest[ps1 ? 5 : 6] - 35;
-      psStop = prevLowest[ps1 ? 5 : 6] + 35;
-      pdStart = prevLowest[7] - 35;
-      pdStop = prevLowest[7] + 35;
+      if (prevLowest.length && Stage.value === 0) {
+        pdStart = prevLowest[7] - 16;
+        pdStop = prevLowest[7] + 16;
+        pdStep = 8;
+      } else {
+        pdStart = 25;
+        pdStop = 475;
+        pdStep = 50;
+      }
+    } else if (iteration === 0) {
+      psStart = prevLowest[5] - 35;
+      psStop = prevLowest[5] + 35;
       psStep = 5;
-      pdStep = 2;
-    } else if (iteration === 2) {
-      psStart = prevLowest[ps1 ? 5 : 6] - 3;
-      psStop = prevLowest[ps1 ? 5 : 6] + 3;
+      if (prevLowest.length && Stage.value === 0) {
+        pdStart = prevLowest[7] - 6;
+        pdStop = prevLowest[7] + 6;
+        pdStep = 3;
+      } else {
+        pdStart = prevLowest[7] - 35;
+        pdStop = prevLowest[7] + 35;
+        pdStep = 5;
+      }
+    } else if (iteration === 1) {
+      psStart = prevLowest[5] - 3;
+      psStop = prevLowest[5] + 3;
+      psStep = 1;
       pdStart = prevLowest[7] - 3;
       pdStop = prevLowest[7] + 3;
-      psStep = 1;
       pdStep = 1;
     }
   } else if (!fresh) {
-    if (iteration === 0) {
-      // must have come from a flip
-      psStart = 16;
-      psStop = 491;
-      pdStart = prevLowest[7]; // eslint-disable-line prefer-destructuring
-      pdStop = prevLowest[7]; // eslint-disable-line prefer-destructuring
-      psStep = 25;
-      pdStep = 1;
-    } else if (iteration === 1 && newPower) {
-      psStart = prevLowest[ps1 ? 5 : 6] - 4;
-      psStop = prevLowest[ps1 ? 5 : 6] + 4;
-      pdStart = prevLowest[7] - 12;
-      pdStop = prevLowest[7] + 12;
-      psStep = 2;
-      pdStep = 3;
-    } else if (iteration === 1 && !newPower) {
-      psStart = ps1 ? prevLowest[5] - 16 : prevLowest[6];
-      psStop = ps1 ? prevLowest[5] : prevLowest[6] + 16;
-      pdStart = prevLowest[7] - 4;
-      pdStop = prevLowest[7] + 4;
+    if (iteration === 0 && newPower) {
+      psStart = prevLowest[Stage.isPs1() ? 5 : 6] - 16;
+      psStop = prevLowest[Stage.isPs1() ? 5 : 6] + 16;
       psStep = 4;
-      pdStep = 2;
-    } else if (iteration === 2) {
-      psStart = prevLowest[ps1 ? 5 : 6] - 2;
-      psStop = prevLowest[ps1 ? 5 : 6] + 2;
+      pdStart = prevLowest[7] - 16;
+      pdStop = prevLowest[7] + 16;
+      pdStep = 4;
+    } else if (iteration === 0 && !newPower) {
+      psStart = Stage.isPs1() ? prevLowest[5] - 16 : prevLowest[6];
+      psStop = Stage.isPs1() ? prevLowest[5] : prevLowest[6] + 16;
+      psStep = 4;
+      pdStart = prevLowest[7] - 16;
+      pdStop = prevLowest[7] + 8;
+      pdStep = 4;
+    } else if (iteration === 1) {
+      psStart = prevLowest[Stage.isPs1() ? 5 : 6] - 2;
+      psStop = prevLowest[Stage.isPs1() ? 5 : 6] + 2;
+      psStep = 1;
       pdStart = prevLowest[7] - 2;
       pdStop = prevLowest[7] + 2;
-      psStep = 1;
       pdStep = 1;
     }
   }
 
-  await asyncLoop(psStart, psStop, psStep, async step => {
-    let i = step;
-    if (i < 0) i += 512;
-    if (i > 511) i -= 512;
+  await asyncLoop(psStart, psStop, psStep, async i => {
+    if (i < 0 || i > 511 || (Stage.value === 0 && i > prevLowest[5])) return null;
     grid.push([]);
     const index = grid.length - 1;
-    await telnet.write(`mp 1 ${ps1 ? 1 : 2} ${i} `);
-    return asyncLoop(pdStart, pdStop, pdStep, async innerStep => {
-      let j = innerStep;
-      if (j < 0) j += 512;
-      if (j > 511) j -= 512;
-      grid[index].push([frequency, power, degrees, amp, phase, ps1 ? i : 0, ps1 ? 0 : i, j]);
+    await telnet.write(`mp 1 ${Stage.isPs1() ? 1 : 2} ${i} `);
+    return asyncLoop(pdStart, pdStop, pdStep, async j => {
+      if (j < 0 || j > 511) return null;
+      grid[index].push([
+        frequency,
+        power,
+        degrees,
+        amp,
+        phase,
+        Stage.isPs1() ? i : prevLowest[5],
+        Stage.isPs1() ? prevLowest[6] : i,
+        j,
+      ]);
       await telnet.write(`mp 1 3 ${j} `);
       await ms(5);
       let data;
@@ -108,58 +151,73 @@ const getGrid = async (frequency, power, degrees, amp, phase, ps1, fresh, iterat
     });
   });
   const lowest = twoDMin(grid, 9);
-  if (!fresh && iteration === 0 && !newPower) {
-    const firstHalf = await getGrid(frequency, power, degrees, amp, phase, ps1, fresh, iteration + 1, lowest);
-    lowest[5] += ps1 ? 16 : 0;
-    lowest[6] -= ps1 ? 0 : 16;
-    const secondHalf = await getGrid(frequency, power, degrees, amp, phase, ps1, fresh, iteration + 1, lowest);
-    return firstHalf[9] < secondHalf[9] ? firstHalf : secondHalf;
-  }
-  return iteration === 2 ? lowest : getGrid(frequency, power, degrees, amp, phase, ps1, fresh, iteration + 1, lowest);
+  return iteration === 1
+    ? lowest
+    : getGrid(frequency, power, degrees, amp, phase, lowest, Stage, newPower, iteration + 1, fresh);
 };
 
-module.exports = async (frequency, power, degrees, prevPoint, newPower) => {
+module.exports = async (frequency, power, degrees, prevPoint, Stage, newPower) => {
   console.log(power, degrees); // eslint-disable-line no-console
   await moku.setPoint(frequency, power, degrees);
   await ms(250);
   const { amp, phase } = await telnet.parseGlobalStat();
-  const ps1 = prevPoint[5] || 0;
-  const ps2 = prevPoint[6] || 1;
-  await telnet.write(`mp 1 ${ps1 > ps2 ? 2 : 1} 0 `);
-  let point = await (prevPoint.length
-    ? getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, false, 1, prevPoint, newPower)
-    : getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, true));
-  if ((point[6] === 127 || point[6] === 255 || point[6] === 511) && prevPoint.length) {
-    const newPrevPoint = prevPoint;
-    newPrevPoint[6] = prevPoint[6] + (point[6] === 127 ? 8 : 16);
-    newPrevPoint[7] = prevPoint[7] + (point[6] === 127 ? 3 : 5);
-    let checkPoint = await getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, false, 1, newPrevPoint, newPower);
-    point = point[9] < checkPoint[9] ? point : checkPoint;
+  let point = [];
+  if (prevPoint.length) {
+    await telnet.write(`mp 1 1 ${prevPoint[5]} `);
+    await telnet.write(`mp 1 2 ${prevPoint[6]} `);
+    point = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower);
 
-    newPrevPoint[6] = prevPoint[6] + (point[6] === 127 ? 16 : 32);
-    newPrevPoint[7] = prevPoint[7] + (point[6] === 127 ? 5 : 10);
-    checkPoint = await getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, false, 1, newPrevPoint, newPower);
-    point = point[9] < checkPoint[9] ? point : checkPoint;
-  }
-  if ((point[5] === 128 || point[5] === 256) && prevPoint.length) {
-    const newPrevPoint = prevPoint;
-    newPrevPoint[5] = prevPoint[5] - (point[5] === 128 ? 8 : 16);
-    newPrevPoint[7] = prevPoint[7] + (point[5] === 128 ? 3 : 5);
-    let checkPoint = await getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, false, 1, newPrevPoint, newPower);
-    point = point[9] < checkPoint[9] ? point : checkPoint;
+    if (Stage.isBaseCase(point)) {
+      const tempValue = Stage.value;
+      Stage.next();
+      let nextStage = [];
+      if (Stage.value === 0) {
+        await telnet.write(`mp 1 2 0 `);
+        nextStage = await getGrid(frequency, power, degrees, amp, phase, point, Stage, newPower, -1, true);
+      } else nextStage = await getGrid(frequency, power, degrees, amp, phase, point, Stage, newPower);
+      if (point[9] < nextStage[9]) Stage.setValue(tempValue);
+      else point = nextStage;
+    }
 
-    newPrevPoint[5] = prevPoint[5] - (point[5] === 128 ? 16 : 32);
-    newPrevPoint[7] = prevPoint[7] + (point[5] === 128 ? 5 : 10);
-    checkPoint = await getGrid(frequency, power, degrees, amp, phase, ps1 > ps2, false, 1, newPrevPoint, newPower);
-    point = point[9] < checkPoint[9] ? point : checkPoint;
-  }
-  if (point[9] > -35) {
-    console.log('trying flip'); // eslint-disable-line no-console
-    await telnet.write(`mp 1 ${ps2 > ps1 ? 2 : 1} 0 `);
-    const flipPoint = await (prevPoint.length
-      ? getGrid(frequency, power, degrees, amp, phase, ps2 > ps1, false, 0, prevPoint, newPower)
-      : getGrid(frequency, power, degrees, amp, phase, ps2 > ps1, true));
-    return point[9] < flipPoint[9] ? point : flipPoint;
+    if ((Stage.isPs1() && point[5] === 256) || (Stage.isPs2() && point[6] === 255)) {
+      const newPrevPoint = prevPoint;
+      if (Stage.isPs1()) newPrevPoint[5] = prevPoint[5] - 16;
+      else newPrevPoint[6] = prevPoint[6] + 16;
+      newPrevPoint[7] = prevPoint[7] + 5;
+      let checkPoint = await getGrid(frequency, power, degrees, amp, phase, newPrevPoint, Stage, newPower);
+      point = point[9] < checkPoint[9] ? point : checkPoint;
+
+      if (Stage.isPs1()) newPrevPoint[5] = prevPoint[5] - 32;
+      else newPrevPoint[6] = prevPoint[6] + 32;
+      newPrevPoint[7] = prevPoint[7] + 10;
+      checkPoint = await getGrid(frequency, power, degrees, amp, phase, newPrevPoint, Stage, newPower);
+      point = point[9] < checkPoint[9] ? point : checkPoint;
+    }
+
+    if (point[9] < -35) {
+      console.log('trying wide'); // eslint-disable-line no-console
+      const newPrevPoint = prevPoint;
+      if (Stage.isPs1()) newPrevPoint[5] = prevPoint[5] - 16;
+      else newPrevPoint[6] = prevPoint[6] + 16;
+      const checkPoint = await getGrid(frequency, power, degrees, amp, phase, newPrevPoint, Stage, newPower);
+      point = point[9] < checkPoint[9] ? point : checkPoint;
+    }
+  } else {
+    await telnet.write(`mp 1 2 511 `);
+    Stage.setValue(-1);
+    const firstSide = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower, -1, true);
+
+    await telnet.write(`mp 1 2 0 `);
+    Stage.setValue(0);
+    const secondSide = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower, -1, true);
+
+    if (firstSide[9] < secondSide[9]) {
+      point = firstSide;
+      Stage.setValue(-1);
+    } else {
+      point = secondSide;
+      Stage.setValue(0);
+    }
   }
   return point;
 };
