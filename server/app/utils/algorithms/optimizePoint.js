@@ -53,7 +53,7 @@ const getGrid = async (
       psStart = 25;
       psStop = 475;
       psStep = 50;
-      if (narrowPd && newStageRotation) {
+      if (narrowPd) {
         pdStart = prevLowest[7] - 16;
         pdStop = prevLowest[7] + 16;
         pdStep = 8;
@@ -66,7 +66,7 @@ const getGrid = async (
       psStart = prevLowest[5] - 35;
       psStop = prevLowest[5] + 35;
       psStep = 5;
-      if (narrowPd && newStageRotation) {
+      if (narrowPd) {
         pdStart = prevLowest[7] - 6;
         pdStop = prevLowest[7] + 6;
         pdStep = 3;
