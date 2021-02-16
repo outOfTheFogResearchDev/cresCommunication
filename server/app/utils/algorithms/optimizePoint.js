@@ -37,7 +37,9 @@ const getGrid = async (
   Stage,
   newPower,
   iteration = 0,
-  fresh = false
+  fresh = false,
+  newStageRotation = false,
+  narrowPd = false
 ) => {
   const grid = [];
   let psStart;
@@ -51,7 +53,7 @@ const getGrid = async (
       psStart = 25;
       psStop = 475;
       psStep = 50;
-      if (prevLowest.length && Stage.value === 0) {
+      if (narrowPd && newStageRotation) {
         pdStart = prevLowest[7] - 16;
         pdStop = prevLowest[7] + 16;
         pdStep = 8;
@@ -64,7 +66,7 @@ const getGrid = async (
       psStart = prevLowest[5] - 35;
       psStop = prevLowest[5] + 35;
       psStep = 5;
-      if (prevLowest.length && Stage.value === 0) {
+      if (narrowPd && newStageRotation) {
         pdStart = prevLowest[7] - 6;
         pdStop = prevLowest[7] + 6;
         pdStep = 3;
@@ -113,6 +115,8 @@ const getGrid = async (
     await telnet.write(`mp 1 ${Stage.isPs1() ? 1 : 2} ${i} `);
     return asyncLoop(pdStart, pdStop, pdStep, async j => {
       if (j < 0 || j > 511) return null;
+      const setPs2ForFreshRuns = newStageRotation ? 0 : 511;
+      const previousPs2 = prevLowest.length ? prevLowest[6] : setPs2ForFreshRuns;
       grid[index].push([
         frequency,
         power,
@@ -120,7 +124,7 @@ const getGrid = async (
         amp,
         phase,
         Stage.isPs1() ? i : prevLowest[5],
-        Stage.isPs1() ? prevLowest[6] : i,
+        Stage.isPs1() ? previousPs2 : i,
         j,
       ]);
       await telnet.write(`mp 1 3 ${j} `);
@@ -153,7 +157,20 @@ const getGrid = async (
   const lowest = twoDMin(grid, 9);
   return iteration === 1
     ? lowest
-    : getGrid(frequency, power, degrees, amp, phase, lowest, Stage, newPower, iteration + 1, fresh);
+    : getGrid(
+        frequency,
+        power,
+        degrees,
+        amp,
+        phase,
+        lowest,
+        Stage,
+        newPower,
+        iteration + 1,
+        fresh,
+        newStageRotation,
+        narrowPd
+      );
 };
 
 module.exports = async (frequency, power, degrees, prevPoint, Stage, newPower) => {
@@ -167,49 +184,72 @@ module.exports = async (frequency, power, degrees, prevPoint, Stage, newPower) =
     await telnet.write(`mp 1 2 ${prevPoint[6]} `);
     point = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower);
 
-    if (Stage.isBaseCase(point)) {
-      const tempValue = Stage.value;
-      Stage.next();
-      let nextStage = [];
-      if (Stage.value === 0) {
-        await telnet.write(`mp 1 2 0 `);
-        nextStage = await getGrid(frequency, power, degrees, amp, phase, point, Stage, newPower, -1, true);
-      } else nextStage = await getGrid(frequency, power, degrees, amp, phase, point, Stage, newPower);
-      if (point[9] < nextStage[9]) Stage.setValue(tempValue);
-      else point = nextStage;
-    }
-
-    if ((Stage.isPs1() && point[5] === 256) || (Stage.isPs2() && point[6] === 255)) {
+    if (
+      (Stage.isPs1() && (point[5] === 256 || point[5] === 128)) ||
+      (Stage.isPs2() && (point[6] === 255 || point[6] === 127))
+    ) {
       const newPrevPoint = prevPoint;
       if (Stage.isPs1()) newPrevPoint[5] = prevPoint[5] - 16;
       else newPrevPoint[6] = prevPoint[6] + 16;
       newPrevPoint[7] = prevPoint[7] + 5;
       let checkPoint = await getGrid(frequency, power, degrees, amp, phase, newPrevPoint, Stage, newPower);
-      point = point[9] < checkPoint[9] ? point : checkPoint;
+      if (checkPoint.length) point = point[9] < checkPoint[9] ? point : checkPoint;
 
       if (Stage.isPs1()) newPrevPoint[5] = prevPoint[5] - 32;
       else newPrevPoint[6] = prevPoint[6] + 32;
       newPrevPoint[7] = prevPoint[7] + 10;
       checkPoint = await getGrid(frequency, power, degrees, amp, phase, newPrevPoint, Stage, newPower);
-      point = point[9] < checkPoint[9] ? point : checkPoint;
+      if (checkPoint.length) point = point[9] < checkPoint[9] ? point : checkPoint;
     }
 
-    if (point[9] < -35) {
+    if (point[9] > -35 && !Stage.isNearBaseCase(point)) {
       console.log('trying wide'); // eslint-disable-line no-console
       const newPrevPoint = prevPoint;
       if (Stage.isPs1()) newPrevPoint[5] = prevPoint[5] - 16;
       else newPrevPoint[6] = prevPoint[6] + 16;
       const checkPoint = await getGrid(frequency, power, degrees, amp, phase, newPrevPoint, Stage, newPower);
-      point = point[9] < checkPoint[9] ? point : checkPoint;
+      if (checkPoint.length) point = point[9] < checkPoint[9] ? point : checkPoint;
+    }
+
+    if (Stage.isNearBaseCase(point)) {
+      const tempPoint = point;
+      if (Stage.isPs1()) tempPoint[5] = 0;
+      // eslint-disable-next-line prefer-destructuring
+      else if (Stage.value === 0) tempPoint[6] = point[5];
+      else tempPoint[6] = 511;
+
+      let nextStage = [];
+      const tempValue = Stage.value;
+      Stage.next();
+      if (Stage.value === 0) {
+        Stage.setValue(-1);
+        await telnet.write(`mp 1 2 0 `);
+        nextStage = await getGrid(
+          frequency,
+          power,
+          degrees,
+          amp,
+          phase,
+          tempPoint,
+          Stage,
+          newPower,
+          -1,
+          true,
+          true,
+          true
+        );
+        Stage.setValue(0);
+      } else nextStage = await getGrid(frequency, power, degrees, amp, phase, tempPoint, Stage, newPower);
+      if (point[9] < nextStage[9]) Stage.setValue(tempValue);
+      else point = nextStage;
     }
   } else {
     await telnet.write(`mp 1 2 511 `);
     Stage.setValue(-1);
-    const firstSide = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower, -1, true);
+    const firstSide = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower, -1, true, false);
 
     await telnet.write(`mp 1 2 0 `);
-    Stage.setValue(0);
-    const secondSide = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower, -1, true);
+    const secondSide = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower, -1, true, true);
 
     if (firstSide[9] < secondSide[9]) {
       point = firstSide;

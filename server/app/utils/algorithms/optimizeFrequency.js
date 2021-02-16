@@ -24,12 +24,12 @@ module.exports = async (frequency, ampLow, ampHigh, phaseLow, phaseHigh) => {
     isPs2() {
       return !(this.value % 2);
     },
-    isBaseCase(point) {
+    isNearBaseCase(point) {
       return (
-        (this.value === -1 && point[5] === 0) ||
-        (this.value === 0 && point[5] === point[6]) ||
-        (this.value === 1 && point[5] === 0) ||
-        (this.value === 2 && point[6] === 511)
+        (this.value === -1 && point[5] <= 5) ||
+        (this.value === 0 && point[6] >= point[5] - 5) ||
+        (this.value === 1 && point[5] <= 5) ||
+        (this.value === 2 && point[6] >= 506)
       );
     },
   };
