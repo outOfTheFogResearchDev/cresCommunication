@@ -114,7 +114,6 @@ const getGrid = async (
       pdStep = 1;
     }
   }
-
   await asyncLoop(psStart, psStop, psStep, async i => {
     if (i < 0 || i > 511 || (Stage.value === 0 && i > prevLowest[5])) return null;
     grid.push([]);
@@ -192,16 +191,48 @@ module.exports = async (frequency, power, degrees, prevPoint, Stage, newPower) =
     point = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower);
 
     if (
-      (Stage.isPs1() && (point[5] === 256 || point[5] === 128)) ||
-      (Stage.isPs2() && (point[6] === 255 || point[6] === 127))
+      (Stage.isPs1() && (point[5] === 384 || point[5] === 256 || point[5] === 128)) ||
+      (Stage.isPs2() && (point[6] === 383 || point[6] === 255 || point[6] === 127))
     ) {
-      console.log('trying 256 - 128'); // eslint-disable-line no-console
+      console.log('trying 128 - 256 - 384'); // eslint-disable-line no-console
       const newPrevPoint = prevPoint.slice();
       if (Stage.isPs1()) newPrevPoint[5] = prevPoint[5] - 32;
       else newPrevPoint[6] = prevPoint[6] + 32;
       newPrevPoint[7] = prevPoint[7] + 20;
       const checkPoint = await getGrid(frequency, power, degrees, amp, phase, newPrevPoint, Stage, newPower, -1);
-      if (checkPoint.length) point = point[9] < checkPoint[9] ? point : checkPoint;
+      if (checkPoint.length && checkPoint[9] < point[9]) point = checkPoint;
+      else if (
+        Stage.value === 0 &&
+        ((point[5] > 383 && point[5] <= 383 + 16) ||
+          (point[5] > 255 && point[5] <= 255 + 16) ||
+          (point[5] > 127 && point[5] <= 127 + 16))
+      ) {
+        console.log('trying next stage'); // eslint-disable-line no-console
+        const tempPoint = point.slice();
+        tempPoint[6] = point[5]; // eslint-disable-line prefer-destructuring
+        Stage.next();
+        let nextStage = await getGrid(frequency, power, degrees, amp, phase, tempPoint, Stage, newPower);
+        if (nextStage[5] === 384 || nextStage[5] === 256 || nextStage[5] === 128) {
+          const newTempPoint = tempPoint.slice();
+          newTempPoint[5] = tempPoint[5] - 32;
+          newTempPoint[7] = tempPoint[7] + 20;
+          const checkTempPoint = await getGrid(
+            frequency,
+            power,
+            degrees,
+            amp,
+            phase,
+            newTempPoint,
+            Stage,
+            newPower,
+            -1
+          );
+          if (checkTempPoint.length && checkTempPoint[9] < nextStage[9]) nextStage = checkTempPoint;
+        }
+
+        if (point[9] < nextStage[9]) Stage.setValue(0);
+        else point = nextStage;
+      }
     }
 
     if (point[9] > -35 && !Stage.isNearBaseCase(point)) {
@@ -210,7 +241,7 @@ module.exports = async (frequency, power, degrees, prevPoint, Stage, newPower) =
       if (Stage.isPs1()) newPrevPoint[5] = prevPoint[5] - 16;
       else newPrevPoint[6] = prevPoint[6] + 16;
       const checkPoint = await getGrid(frequency, power, degrees, amp, phase, newPrevPoint, Stage, newPower);
-      if (checkPoint.length) point = point[9] < checkPoint[9] ? point : checkPoint;
+      if (checkPoint.length && checkPoint[9] < point[9]) point = checkPoint;
     }
 
     if (Stage.isNearBaseCase(point)) {
@@ -257,7 +288,7 @@ module.exports = async (frequency, power, degrees, prevPoint, Stage, newPower) =
       secondSide = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower, -1, true, true);
     }
 
-    if (firstSide[9] < secondSide[9]) {
+    if (!secondSide.length || firstSide[9] < secondSide[9]) {
       point = firstSide;
       Stage.setValue(-1);
     } else {
