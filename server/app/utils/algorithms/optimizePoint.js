@@ -207,29 +207,13 @@ module.exports = async (frequency, power, degrees, prevPoint, Stage, newPower) =
           (point[5] > 255 && point[5] <= 255 + 16) ||
           (point[5] > 127 && point[5] <= 127 + 16))
       ) {
-        console.log('trying next stage'); // eslint-disable-line no-console
-        const tempPoint = point.slice();
-        tempPoint[6] = point[5]; // eslint-disable-line prefer-destructuring
+        console.log('trying near next stage'); // eslint-disable-line no-console
         Stage.next();
-        let nextStage = await getGrid(frequency, power, degrees, amp, phase, tempPoint, Stage, newPower);
-        if (nextStage[5] === 384 || nextStage[5] === 256 || nextStage[5] === 128) {
-          const newTempPoint = tempPoint.slice();
-          newTempPoint[5] = tempPoint[5] - 32;
-          newTempPoint[7] = tempPoint[7] + 20;
-          const checkTempPoint = await getGrid(
-            frequency,
-            power,
-            degrees,
-            amp,
-            phase,
-            newTempPoint,
-            Stage,
-            newPower,
-            -1
-          );
-          if (checkTempPoint.length && checkTempPoint[9] < nextStage[9]) nextStage = checkTempPoint;
-        }
-
+        const tempPoint = point.slice();
+        tempPoint[5] = point[5] - 32;
+        tempPoint[6] = point[5]; // eslint-disable-line prefer-destructuring
+        tempPoint[7] = point[7] + 10;
+        const nextStage = await getGrid(frequency, power, degrees, amp, phase, tempPoint, Stage, newPower, -1);
         if (point[9] < nextStage[9]) Stage.setValue(0);
         else point = nextStage;
       }
