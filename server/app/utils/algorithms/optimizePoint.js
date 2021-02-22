@@ -121,6 +121,7 @@ const getGrid = async (
     await telnet.write(`mp 1 ${Stage.isPs1() ? 1 : 2} ${i} `);
     return asyncLoop(pdStart, pdStop, pdStep, async j => {
       if (j < 0 || j > 511) return null;
+      const previousPs1 = prevLowest.length ? prevLowest[5] : 0;
       const setPs2ForFreshRuns = newStageRotation ? 0 : 511;
       const previousPs2 = prevLowest.length ? prevLowest[6] : setPs2ForFreshRuns;
       grid[index].push([
@@ -129,7 +130,7 @@ const getGrid = async (
         degrees,
         amp,
         phase,
-        Stage.isPs1() ? i : prevLowest[5],
+        Stage.isPs1() ? i : previousPs1,
         Stage.isPs1() ? previousPs2 : i,
         j,
       ]);
@@ -161,6 +162,7 @@ const getGrid = async (
     });
   });
   const lowest = twoDMin(grid, 9);
+  if (!lowest.length) return [];
   return iteration === 1
     ? lowest
     : getGrid(
@@ -199,13 +201,30 @@ module.exports = async (frequency, power, degrees, prevPoint, Stage, newPower) =
       if (Stage.isPs1()) newPrevPoint[5] = prevPoint[5] - 32;
       else newPrevPoint[6] = prevPoint[6] + 32;
       newPrevPoint[7] = prevPoint[7] + 20;
-      const checkPoint = await getGrid(frequency, power, degrees, amp, phase, newPrevPoint, Stage, newPower, -1);
+      let checkPoint = await getGrid(frequency, power, degrees, amp, phase, newPrevPoint, Stage, newPower, -1);
+
+      if (checkPoint.length && checkPoint[9] > -35) {
+        newPrevPoint[7] = prevPoint[7] - 20;
+        const downPdCheckPoint = await getGrid(
+          frequency,
+          power,
+          degrees,
+          amp,
+          phase,
+          newPrevPoint,
+          Stage,
+          newPower,
+          -1
+        );
+        if (downPdCheckPoint.length && downPdCheckPoint[9] < checkPoint[9]) checkPoint = downPdCheckPoint;
+      }
+
       if (checkPoint.length && checkPoint[9] < point[9]) point = checkPoint;
       else if (
         Stage.value === 0 &&
-        ((point[5] > 383 && point[5] <= 383 + 16) ||
-          (point[5] > 255 && point[5] <= 255 + 16) ||
-          (point[5] > 127 && point[5] <= 127 + 16))
+        ((point[6] === 383 && point[5] > 383 && point[5] <= 383 + 32) ||
+          (point[6] === 255 && point[5] > 255 && point[5] <= 255 + 32) ||
+          (point[6] === 127 && point[5] > 127 && point[5] <= 127 + 32))
       ) {
         console.log('trying near next stage'); // eslint-disable-line no-console
         Stage.next();
@@ -272,12 +291,22 @@ module.exports = async (frequency, power, degrees, prevPoint, Stage, newPower) =
       secondSide = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower, -1, true, true);
     }
 
-    if (!secondSide.length || firstSide[9] < secondSide[9]) {
-      point = firstSide;
-      Stage.setValue(-1);
-    } else {
+    let thirdSide = [];
+    if (secondSide.length && secondSide[9] > -50) {
+      Stage.setValue(2);
+      await telnet.write(`mp 1 1 0 `);
+      thirdSide = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower, -1, true, false);
+    }
+
+    if (thirdSide.length && thirdSide[9] < secondSide[9] && thirdSide[9] < firstSide[9]) {
+      point = thirdSide;
+      Stage.setValue(2);
+    } else if (secondSide.length && secondSide[9] < firstSide[9]) {
       point = secondSide;
       Stage.setValue(0);
+    } else {
+      point = firstSide;
+      Stage.setValue(-1);
     }
   }
   return point;
