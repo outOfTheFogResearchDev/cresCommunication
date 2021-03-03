@@ -58,6 +58,10 @@ module.exports = async (frequency, ampLow, ampHigh, phaseLow, phaseHigh) => {
 
       point = await optimizePoint(frequency, i, j, point, Stage, newPower);
 
+      if (point[9] > -33) {
+        point = await optimizePoint(frequency, i, j, [], Stage, newPower);
+      }
+
       // if (collectPreviousPowerPoint) {
       //   collectPreviousPowerPoint = false;
       //   newPower = false;

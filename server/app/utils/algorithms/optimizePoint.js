@@ -63,8 +63,8 @@ const getGrid = async (
         pdStep = 50;
       }
     } else if (iteration === 0) {
-      psStart = prevLowest[5] - 35;
-      psStop = prevLowest[5] + 35;
+      psStart = prevLowest[Stage.isPs1() ? 5 : 6] - 35;
+      psStop = prevLowest[Stage.isPs1() ? 5 : 6] + 35;
       psStep = 5;
       if (narrowPd) {
         pdStart = prevLowest[7] - 6;
@@ -76,8 +76,8 @@ const getGrid = async (
         pdStep = 5;
       }
     } else if (iteration === 1) {
-      psStart = prevLowest[5] - 3;
-      psStop = prevLowest[5] + 3;
+      psStart = prevLowest[Stage.isPs1() ? 5 : 6] - 3;
+      psStop = prevLowest[Stage.isPs1() ? 5 : 6] + 3;
       psStep = 1;
       pdStart = prevLowest[7] - 3;
       pdStop = prevLowest[7] + 3;
@@ -124,6 +124,7 @@ const getGrid = async (
       const previousPs1 = prevLowest.length ? prevLowest[5] : 0;
       const setPs2ForFreshRuns = newStageRotation ? 0 : 511;
       const previousPs2 = prevLowest.length ? prevLowest[6] : setPs2ForFreshRuns;
+      // console.log(Stage.isPs1() ? i : previousPs1, Stage.isPs1() ? previousPs2 : i, j);
       grid[index].push([
         frequency,
         power,
@@ -203,7 +204,7 @@ module.exports = async (frequency, power, degrees, prevPoint, Stage, newPower) =
       newPrevPoint[7] = prevPoint[7] + 20;
       let checkPoint = await getGrid(frequency, power, degrees, amp, phase, newPrevPoint, Stage, newPower, -1);
 
-      if (checkPoint.length && checkPoint[9] > -35) {
+      if (checkPoint.length && checkPoint[9] > -45) {
         newPrevPoint[7] = prevPoint[7] - 20;
         const downPdCheckPoint = await getGrid(
           frequency,
@@ -281,18 +282,21 @@ module.exports = async (frequency, power, degrees, prevPoint, Stage, newPower) =
       else point = nextStage;
     }
   } else {
+    console.log('trying fresh stage -1'); // eslint-disable-line no-console
     await telnet.write(`mp 1 2 511 `);
     Stage.setValue(-1);
     const firstSide = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower, -1, true, false);
 
     let secondSide = [];
     if (firstSide[9] > -50) {
+      console.log('trying fresh stage 0'); // eslint-disable-line no-console
       await telnet.write(`mp 1 2 0 `);
       secondSide = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower, -1, true, true);
     }
 
     let thirdSide = [];
-    if (secondSide.length && secondSide[9] > -50) {
+    if (secondSide.length && firstSide[9] > -35) {
+      console.log('trying fresh stage 2'); // eslint-disable-line no-console
       Stage.setValue(2);
       await telnet.write(`mp 1 1 0 `);
       thirdSide = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower, -1, true, false);
