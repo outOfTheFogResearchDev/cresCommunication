@@ -1,5 +1,5 @@
 const {
-  promises: { writeFile, readFile, stat, mkdir, readdir, unlink },
+  promises: { writeFile, readFile, open, stat, mkdir, readdir, unlink },
 } = require('fs');
 const csvWrite = require('csv-stringify');
 const csvRead = require('csv-parse');
@@ -9,6 +9,8 @@ const csvFolderLocation = './server/local';
 const csvTempFolderLocation = `${csvFolderLocation}/temp`;
 const csvLocation = name => `${csvFolderLocation}/${name || 'data'}.csv`;
 const pointOptimizeLocation = (frequency, i, j) => `${csvTempFolderLocation}/${frequency}_${i}_${j}_Optimize.csv`;
+const lookupTableLocation = './server/app/utils/lookupTable/local';
+const largeLookupTable = frequency => `${lookupTableLocation}/${frequency}_MHz_Large.csv`;
 
 const writeCsv = async (points, location) => {
   const csv = await new Promise(resolve => csvWrite(points, (err, data) => resolve(data)));
@@ -61,6 +63,15 @@ const concatCsv = async () => {
   await deleteFolder(csvTempFolderLocation);
 };
 
+const readLargeTable = async (frequency, row) => {
+  const fileHandler = await open(largeLookupTable(frequency));
+  const buf = Buffer.alloc(22);
+  const { buffer } = await fileHandler.read(buf, 0, buf.length, row * 22);
+  await fileHandler.close();
+  const [amp, phase, ps1, ps2, pd] = JSON.parse(`[${buffer.toString('utf8').slice(0, -1)}]`);
+  return { amp, phase, ps1, ps2, pd };
+};
+
 module.exports = {
   async storePoints(points) {
     writeCsv(points, csvLocation);
@@ -92,4 +103,5 @@ module.exports = {
     }
     await deleteFolder(`${location}/temp`);
   },
+  readLargeTable,
 };
