@@ -29,5 +29,8 @@ module.exports = async (type, usingTable, prevAmp, prevPhase) => {
   });
   closest = closest.map(item => +item);
   const [, , , , , ps1, ps2, pd] = closest;
+  await telnet.write(`mp 1 1 ${ps1} `);
+  await telnet.write(`mp 1 2 ${ps2} `);
+  await telnet.write(`mp 1 3 ${pd} `);
   return { amp, phase, ps1, ps2, pd };
 };
