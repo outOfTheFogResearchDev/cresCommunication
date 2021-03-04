@@ -9,7 +9,7 @@ const largeLookupTable = frequency => `${lookupTableLocation}/${frequency}_MHz_L
 
 const normalize = (s, n) => ' '.repeat(n - `${s}`.length) + s;
 
-module.exports = async (frequency, ampStep = 1, phaseStep = 10) => {
+module.exports = async (frequency, ampStep = 10, phaseStep = 30) => {
   try {
     await stat(lookupTableLocation);
   } catch (e) {
@@ -17,7 +17,7 @@ module.exports = async (frequency, ampStep = 1, phaseStep = 10) => {
   }
   await writeFile(largeLookupTable(frequency), []);
   const table = await readTable(`${__dirname}/local/${frequency}_MHz.csv`);
-  await asyncLoop(0, 2010, ampStep, async i => {
+  await asyncLoop(960, 2010, ampStep, async i => {
     await asyncLoop(0, 6420, phaseStep, async j => {
       console.log(i, j); // eslint-disable-line no-console
       let closest = [];

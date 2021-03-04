@@ -1,6 +1,5 @@
 const {
   promises: { writeFile, readFile, stat, mkdir, readdir, unlink },
-  createReadStream,
 } = require('fs');
 const csvWrite = require('csv-stringify');
 const csvRead = require('csv-parse');
@@ -65,10 +64,10 @@ const concatCsv = async () => {
 };
 
 const readLargeTable = async (frequency, row) => {
-  const data = await new Promise(resolve =>
-    createReadStream(largeLookupTable(frequency), { start: row * 22, end: row * 22 + 22 }).on('data', resolve)
-  );
-  const [amp, phase, ps1, ps2, pd] = JSON.parse(`[${data.toString('utf8').slice(0, -1)}]`);
+  const csv = await readFile(largeLookupTable(frequency));
+  const [amp, phase, ps1, ps2, pd] = (await new Promise(resolve => csvRead(csv, (err, data) => resolve(data))))[
+    row
+  ].map(s => +s);
   return { amp, phase, ps1, ps2, pd };
 };
 

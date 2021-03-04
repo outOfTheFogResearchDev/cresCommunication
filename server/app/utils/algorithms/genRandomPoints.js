@@ -5,12 +5,12 @@ const { random } = require('../math');
 // const applyTable = require('../lookupTable/apply');
 const applyTable = require('../lookupTable/applyLarge');
 
-const getPoint = async (frequency, power, degrees, type, tableType) => {
+const getPoint = async (frequency, power, degrees, type) => {
   await setCenter(frequency);
   await moku.setPoint(frequency, power, degrees);
   await ms(250);
   if (type === 'table') {
-    await applyTable(tableType);
+    await applyTable();
     await ms(10);
   }
   return getPower();
