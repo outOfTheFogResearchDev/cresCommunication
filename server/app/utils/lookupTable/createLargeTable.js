@@ -19,7 +19,7 @@ module.exports = async (frequency, ampStep = 10, phaseStep = 30) => {
   const table = await readTable(`${__dirname}/local/${frequency}_MHz.csv`);
   await asyncLoop(960, 2010, ampStep, async i => {
     await asyncLoop(0, 6420, phaseStep, async j => {
-      console.log(i, j); // eslint-disable-line no-console
+      console.log(frequency, i, j); // eslint-disable-line no-console
       let closest = [];
       let closestDistance = 0;
       table.forEach(cell => {
