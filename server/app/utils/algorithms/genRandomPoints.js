@@ -2,7 +2,8 @@ const moku = require('../moku');
 const { setCenter, getPower } = require('../cpp');
 const { ms } = require('../time');
 const { random } = require('../math');
-const applyTable = require('../lookupTable/apply');
+// const applyTable = require('../lookupTable/apply');
+const applyTable = require('../lookupTable/applyLarge');
 
 const getPoint = async (frequency, power, degrees, type, tableType) => {
   await setCenter(frequency);
@@ -28,6 +29,7 @@ const genRandomPoints = async (
   fails
 ) => {
   if (!pointsQuantity) return [];
+  console.log(pointsQuantity); // eslint-disable-line no-console
   const frequency = random.decimals(1).from(freqLow).to(freqHigh);
   const power = random.decimals(1).from(ampLow).to(ampHigh);
   const degrees = random.decimals(1).from(phaseLow).to(phaseHigh);
