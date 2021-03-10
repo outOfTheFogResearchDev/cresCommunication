@@ -7,8 +7,6 @@ const { readTable } = require('../csv');
 const lookupTableLocation = './server/app/utils/lookupTable/local';
 const largeLookupTable = frequency => `${lookupTableLocation}/${frequency}_MHz_Large.csv`;
 
-const normalize = (s, n) => ' '.repeat(n - `${s}`.length) + s;
-
 module.exports = async (frequency, ampStep = 10, phaseStep = 30) => {
   try {
     await stat(lookupTableLocation);
@@ -34,10 +32,7 @@ module.exports = async (frequency, ampStep = 10, phaseStep = 30) => {
       });
       closest = closest.map(item => +item);
       const [, , , , , ps1, ps2, pd] = closest;
-      await appendFile(
-        largeLookupTable(frequency),
-        `${normalize(i, 4)},${normalize(j, 4)},${normalize(ps1, 3)},${normalize(ps2, 3)},${normalize(pd, 3)}\n`
-      );
+      await appendFile(largeLookupTable(frequency), `${i},${j},${ps1},${ps2},${pd}\n`);
     });
   });
 };
