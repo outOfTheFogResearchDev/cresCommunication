@@ -32,7 +32,7 @@ const timedExit = async () => {
   }
 };
 
-setTimeout(timedExit, 10000); // starts on server start
+if (process.env.TYPE !== 'exe') setTimeout(timedExit, 10000); // starts on server start
 
 ping.post('/', (req, res) => {
   pinged = true;

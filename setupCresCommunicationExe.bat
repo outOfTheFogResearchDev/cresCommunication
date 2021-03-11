@@ -2,6 +2,7 @@ git clone https://github.com/outOfTheFogResearchDev/cresCommunication &
 cd cresCommunication &
 mkdir config &
 echo exports.SECRET = `${Math.random()}`; > config/config.js &
+mkdir "server/app/utils/lookupTable/local" &
 del binding.gyp &
 npm i --prod &
 npm run deployment-build &
