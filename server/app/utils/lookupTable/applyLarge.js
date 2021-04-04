@@ -1,8 +1,10 @@
 const telnet = require('../telnet');
 const { readLargeTable } = require('../csv');
+const { getTableFrequency } = require('../global');
 
 module.exports = async (ampStep = 10, phaseStep = 30) => {
-  const { frequency, amp, phase } = await telnet.parseGlobalStat();
+  const { amp, phase } = await telnet.parseGlobalStat();
+  const frequency = getTableFrequency();
   let _amp = amp > 2010 ? 2010 : amp;
   _amp = amp < 960 ? 960 : amp;
   const _phase = phase > 6420 ? 6420 : phase;

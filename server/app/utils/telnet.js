@@ -1,4 +1,5 @@
 const net = require('net');
+const { setFrequency } = require('./global');
 
 let telnet;
 let _return = () => {};
@@ -12,6 +13,7 @@ module.exports = {
       telnet.write(`${command}\r\n`);
     }),
   async setFreq(frequency) {
+    setFrequency(frequency);
     let code = Math.floor((frequency - 102.5) / 5);
     if (code < 0) code = 0;
     if (code > 18) code = 18;

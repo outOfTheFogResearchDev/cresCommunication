@@ -1,6 +1,6 @@
 const { spawn } = require('child_process');
 const axios = require('axios');
-const telnet = require('./telnet');
+const { setFrequency } = require('./global');
 
 let moku;
 let actions = 0;
@@ -26,7 +26,7 @@ module.exports = {
       await this.gracefulShutdown();
       await this.connect();
     }
-    await telnet.setFreq(frequency);
+    setFrequency(frequency);
     await this.genPhase({ channel: 1, frequency, power: power > 0 ? power : 0, degrees: degrees > 0 ? degrees : 0 });
     await this.genPhase({
       channel: 2,

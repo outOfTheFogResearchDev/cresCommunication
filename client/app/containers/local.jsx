@@ -291,8 +291,8 @@ export default ({
           name="optimizeFL"
           value={optimizeFL}
           id="optimizeFL"
-          min="105"
-          max="195"
+          min="100"
+          max="200"
           step="5"
           onChange={inputChange}
         />
@@ -305,8 +305,8 @@ export default ({
           name="optimizeFH"
           value={optimizeFH}
           id="optimizeFH"
-          min="105"
-          max="195"
+          min="100"
+          max="200"
           step="5"
           onChange={inputChange}
         />

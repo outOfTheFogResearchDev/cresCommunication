@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const api = require('./api/index');
 const { ping } = require('./ping/index');
 const config = require('../../config/config');
+const { setFrequency } = require('./utils/global');
 
 const app = express();
 
@@ -28,6 +29,8 @@ app.use(express.static(`${__dirname}/../../client/dist/`));
 app.use('/api', api);
 
 app.use('/ping', ping);
+
+setFrequency(150);
 
 app.get('/env', (req, res) => res.status(200).send({ env: process.env.TYPE }));
 
