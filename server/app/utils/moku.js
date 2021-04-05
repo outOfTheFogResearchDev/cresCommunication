@@ -1,6 +1,6 @@
 const { spawn } = require('child_process');
 const axios = require('axios');
-const { setFrequency } = require('./global');
+const { setFrequency, mHZEdgeOffset } = require('./global');
 
 let moku;
 let actions = 0;
@@ -21,12 +21,16 @@ module.exports = {
     });
   },
   genPhase: args => pythonPort('/gen', { params: args }),
-  async setPoint(frequency, power, degrees) {
+  async setPoint(freq, power, degrees, creatingTable) {
+    let frequency = freq;
+    setFrequency(frequency);
+    if (creatingTable) {
+      frequency = mHZEdgeOffset(frequency);
+    }
     if (actions >= 150) {
       await this.gracefulShutdown();
       await this.connect();
     }
-    setFrequency(frequency);
     await this.genPhase({ channel: 1, frequency, power: power > 0 ? power : 0, degrees: degrees > 0 ? degrees : 0 });
     await this.genPhase({
       channel: 2,

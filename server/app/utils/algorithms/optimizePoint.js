@@ -184,7 +184,7 @@ const getGrid = async (
 
 module.exports = async (frequency, power, degrees, prevPoint, Stage, newPower) => {
   console.log(power, degrees); // eslint-disable-line no-console
-  await moku.setPoint(frequency, power, degrees);
+  await moku.setPoint(frequency, power, degrees, true);
   await ms(250);
   const { amp, phase } = await telnet.parseGlobalStat();
   let point = [];

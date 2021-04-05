@@ -31,7 +31,7 @@ const Stage = {
 
 module.exports = async (frequency, ampLow, ampHigh, phaseLow, phaseHigh) => {
   Stage.setValue(-1);
-  await setAnalyzer(frequency);
+  await setAnalyzer(frequency, true);
   await telnet.write(`ac1 1`);
   await telnet.write(`pc1 1`);
   // let previousPowerPoint = [];
