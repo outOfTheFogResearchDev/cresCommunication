@@ -39,7 +39,8 @@ const getGrid = async (
   iteration = 0,
   fresh = false,
   newStageRotation = false,
-  narrowPd = false
+  narrowPd = false,
+  testPrevPs1 = 0
 ) => {
   const grid = [];
   let psStart;
@@ -121,7 +122,8 @@ const getGrid = async (
     await telnet.write(`mp 1 ${Stage.isPs1() ? 1 : 2} ${i} `);
     return asyncLoop(pdStart, pdStop, pdStep, async j => {
       if (j < 0 || j > 511) return null;
-      const previousPs1 = prevLowest.length ? prevLowest[5] : 0;
+      const setPs1ForFreshRuns = testPrevPs1 || 0;
+      const previousPs1 = prevLowest.length ? prevLowest[5] : setPs1ForFreshRuns;
       const setPs2ForFreshRuns = newStageRotation ? 0 : 511;
       const previousPs2 = prevLowest.length ? prevLowest[6] : setPs2ForFreshRuns;
       // console.log(Stage.isPs1() ? i : previousPs1, Stage.isPs1() ? previousPs2 : i, j);
@@ -182,7 +184,7 @@ const getGrid = async (
       );
 };
 
-module.exports = async (frequency, power, degrees, prevPoint, Stage, newPower) => {
+module.exports = async (frequency, power, degrees, prevPoint, Stage, newPower, prevPs1) => {
   console.log(power, degrees); // eslint-disable-line no-console
   await moku.setPoint(frequency, power, degrees, true);
   await ms(250);
@@ -282,13 +284,38 @@ module.exports = async (frequency, power, degrees, prevPoint, Stage, newPower) =
       else point = nextStage;
     }
   } else {
-    console.log('trying fresh stage -1'); // eslint-disable-line no-console
-    await telnet.write(`mp 1 2 511 `);
-    Stage.setValue(-1);
-    const firstSide = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower, -1, true, false);
+    let zerothSide = [];
+    if (prevPs1) {
+      console.log('trying previous ps1'); // eslint-disable-line no-console
+      await telnet.write(`mp 1 1 ${prevPs1} `);
+      Stage.setValue(0);
+      zerothSide = await getGrid(
+        frequency,
+        power,
+        degrees,
+        amp,
+        phase,
+        prevPoint,
+        Stage,
+        newPower,
+        -1,
+        true,
+        false,
+        false,
+        prevPs1
+      );
+    }
+
+    let firstSide = [];
+    if (!zerothSide.length || zerothSide[9] > -50) {
+      console.log('trying fresh stage -1'); // eslint-disable-line no-console
+      await telnet.write(`mp 1 2 511 `);
+      Stage.setValue(-1);
+      firstSide = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower, -1, true, false);
+    }
 
     let secondSide = [];
-    if (firstSide[9] > -50) {
+    if (firstSide.length && firstSide[9] > -50) {
       console.log('trying fresh stage 0'); // eslint-disable-line no-console
       await telnet.write(`mp 1 2 0 `);
       secondSide = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower, -1, true, true);
@@ -301,8 +328,15 @@ module.exports = async (frequency, power, degrees, prevPoint, Stage, newPower) =
       await telnet.write(`mp 1 1 0 `);
       thirdSide = await getGrid(frequency, power, degrees, amp, phase, prevPoint, Stage, newPower, -1, true, false);
     }
-
-    if (thirdSide.length && thirdSide[9] < secondSide[9] && thirdSide[9] < firstSide[9]) {
+    if (
+      zerothSide.length &&
+      zerothSide[9] < thirdSide[9] &&
+      zerothSide[9] < secondSide[9] &&
+      zerothSide[9] < firstSide[9]
+    ) {
+      point = zerothSide;
+      Stage.setValue(0);
+    } else if (thirdSide.length && thirdSide[9] < secondSide[9] && thirdSide[9] < firstSide[9]) {
       point = thirdSide;
       Stage.setValue(2);
     } else if (secondSide.length && secondSide[9] < firstSide[9]) {
