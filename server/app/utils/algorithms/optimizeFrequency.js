@@ -1,5 +1,4 @@
 const optimizePoint = require('./optimizePoint');
-const telnet = require('../telnet');
 const { setAnalyzer, resetAnalyzer } = require('../cpp');
 const { asyncLoop } = require('../math');
 const { ms } = require('../time');
@@ -32,8 +31,6 @@ const Stage = {
 module.exports = async (frequency, ampLow, ampHigh, phaseLow, phaseHigh) => {
   Stage.setValue(-1);
   await setAnalyzer(frequency, true);
-  await telnet.write(`ac1 1`);
-  await telnet.write(`pc1 1`);
   // let previousPowerPoint = [];
 
   await asyncLoop(ampLow, ampHigh, 0.5, async i => {
@@ -57,10 +54,6 @@ module.exports = async (frequency, ampLow, ampHigh, phaseLow, phaseHigh) => {
       // }
 
       point = await optimizePoint(frequency, i, j, point, Stage, newPower);
-
-      if (point[9] > -33) {
-        point = await optimizePoint(frequency, i, j, [], Stage, newPower, point[5] > point[6] ? point[5] : 0);
-      }
 
       // if (collectPreviousPowerPoint) {
       //   collectPreviousPowerPoint = false;

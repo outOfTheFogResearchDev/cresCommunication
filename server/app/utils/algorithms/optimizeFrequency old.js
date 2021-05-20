@@ -1,5 +1,4 @@
 const optimizePoint = require('./optimizePoint');
-const telnet = require('../telnet');
 const { setAnalyzer, resetAnalyzer } = require('../cpp');
 const { asyncLoop } = require('../math');
 const { ms } = require('../time');
@@ -7,8 +6,6 @@ const { storeOptimize, concatCsv } = require('../csv');
 
 module.exports = async (frequency, ampLow, ampHigh, phaseLow, phaseHigh) => {
   await setAnalyzer(frequency);
-  await telnet.write(`ac1 1`);
-  await telnet.write(`pc1 1`);
   let previousPowerPoint = [];
   await asyncLoop(ampLow, ampHigh, 20 / 40, async i => {
     let point = [];

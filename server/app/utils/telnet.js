@@ -14,10 +14,14 @@ module.exports = {
     }),
   async setFreq(frequency) {
     setFrequency(frequency);
-    let code = Math.floor((frequency - 102.5) / 5);
-    if (code < 0) code = 0;
-    if (code > 18) code = 18;
-    await this.write(`SetFreq ${code}`);
+    let code = Math.round(frequency * 10);
+    if (code < 100) code = 100;
+    if (code > 200) code = 200;
+    await this.write(`sf ${(code / 10).toFixed(1)}`);
+  },
+  async getAmpPhaseCodes() {
+    const { amplitude: amp, phase_360: phase } = JSON.parse(await this.write('apd'));
+    return { amp, phase };
   },
   async parseGlobalStat() {
     const globalStat = await this.write('GlobalStat');

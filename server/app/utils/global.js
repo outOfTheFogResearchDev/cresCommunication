@@ -6,10 +6,14 @@ module.exports = {
   },
   getFrequency: () => frequency,
   getTableFrequency: () => {
-    let temp = Math.floor((frequency - 97.5) / 5);
+    let temp = Math.floor((frequency - 98.75) / 2.5);
     if (temp < 0) temp = 0;
-    if (temp > 20) temp = 20;
-    return temp * 5 + 100;
+    if (temp > 40) temp = 40;
+    return temp * 2.5 + 100;
+    // let temp = Math.floor((frequency - 97.5) / 5);
+    // if (temp < 0) temp = 0;
+    // if (temp > 20) temp = 20;
+    // return temp * 5 + 100;
   },
   mHZEdgeOffset: freq => {
     if (freq === 100) {

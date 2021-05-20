@@ -7,7 +7,7 @@ const { getTableFrequency } = require('../global');
  * type = fine
  */
 module.exports = async (type, usingTable, prevAmp, prevPhase) => {
-  const { amp, phase } = await telnet.parseGlobalStat();
+  const { amp, phase } = await telnet.getAmpPhaseCodes();
   const frequency = getTableFrequency();
   if (prevAmp && prevPhase && Math.abs(amp - prevAmp) < 3 && Math.abs(phase - prevPhase) < 3) {
     return { amp: prevAmp, phase: prevPhase };
@@ -21,8 +21,8 @@ module.exports = async (type, usingTable, prevAmp, prevPhase) => {
   let closestDistance = 0;
   table.forEach(cell => {
     const d1 = Math.sqrt(((amp - +cell[3]) * 3.2) ** 2 + (phase - +cell[4]) ** 2);
-    const d2 = phase < 200 ? Math.sqrt(((amp - +cell[3]) * 3.2) ** 2 + (phase + 6420 - +cell[4]) ** 2) : d1;
-    const d3 = phase > 6200 ? Math.sqrt(((amp - +cell[3]) * 3.2) ** 2 + (phase - 6420 - +cell[4]) ** 2) : d1;
+    const d2 = phase < 200 ? Math.sqrt(((amp - +cell[3]) * 3.2) ** 2 + (phase + 6450 - +cell[4]) ** 2) : d1;
+    const d3 = phase > 6200 ? Math.sqrt(((amp - +cell[3]) * 3.2) ** 2 + (phase - 6450 - +cell[4]) ** 2) : d1;
     const distance = Math.min(d1, d2, d3);
     if (!closest.length || distance < closestDistance) {
       closest = cell;
@@ -31,8 +31,6 @@ module.exports = async (type, usingTable, prevAmp, prevPhase) => {
   });
   closest = closest.map(item => +item);
   const [, , , , , ps1, ps2, pd] = closest;
-  await telnet.write(`mp 1 1 ${ps1} `);
-  await telnet.write(`mp 1 2 ${ps2} `);
-  await telnet.write(`mp 1 3 ${pd} `);
+  await telnet.write(`mp3 1 ${ps1} ${ps2} ${pd} `);
   return { amp, phase, ps1, ps2, pd };
 };

@@ -7,11 +7,7 @@ const { ms } = require('../time');
 module.exports = async freq => {
   await telnet.setFreq(freq);
 
-  await telnet.write(`mp 0 1 0 `);
-  await telnet.write(`mp 0 2 0 `);
-  await telnet.write(`mp 0 3 0 `);
-  await telnet.write(`ac1 1`);
-  await telnet.write(`pc1 1`);
+  await telnet.write(`mp3 0`);
 
   const data = [];
 
