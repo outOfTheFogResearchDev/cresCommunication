@@ -122,7 +122,7 @@ module.exports = async (frequency, power, degrees, prevPoint, newPower) => {
   console.log(power, degrees); // eslint-disable-line no-console
   await moku.setPoint(frequency, power, degrees);
   await ms(250);
-  const { amp, phase } = await telnet.parseGlobalStat();
+  const { amp, phase } = await telnet.getAmpPhaseCodes();
   const ps1 = prevPoint[5] || 0;
   const ps2 = prevPoint[6] || 1;
   await telnet.write(`mp 1 ${ps1 > ps2 ? 2 : 1} 0 `);

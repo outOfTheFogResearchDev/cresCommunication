@@ -1,4 +1,5 @@
 const moku = require('../moku');
+const telnet = require('../telnet');
 const { setCenter, getPower } = require('../cpp');
 const { ms } = require('../time');
 const { random } = require('../math');
@@ -11,8 +12,10 @@ const getPoint = async (frequency, power, degrees, type) => {
   await ms(250);
   if (type === 'table') {
     await applyTable();
-    await ms(10);
+  } else {
+    await telnet.setFreq(frequency);
   }
+  await ms(10);
   return getPower();
 };
 

@@ -2,7 +2,6 @@ const { Router } = require('express');
 const telnet = require('../utils/telnet');
 const { storePoints } = require('../utils/csv');
 const { ms } = require('../utils/time');
-const applyTable = require('../utils/lookupTable/apply');
 const { startPolling, stopPolling } = require('../utils/algorithms/pollingSoftware');
 const { inOperation, outOperation, getOperating } = require('../ping/index');
 const { asyncLoop } = require('../utils/math');
@@ -69,19 +68,13 @@ api.post('/software', async (req, res) => {
 
 api.post('/firmware', async (req, res) => {
   await stopPolling();
-  await telnet.write(`mp 0 1 0 `);
-  await telnet.write(`mp 0 2 0 `);
-  await telnet.write(`mp 0 3 0 `);
-  await telnet.write(`ac1 1`);
-  await telnet.write(`pc1 1`);
+  await telnet.write(`mp3 0`);
   res.sendStatus(201);
 });
 
 api.post('/manual_codes', async (req, res) => {
   const { ps1, ps2, pd } = req.body;
-  await telnet.write(`mp 1 1 ${ps1} `);
-  await telnet.write(`mp 1 2 ${ps2} `);
-  await telnet.write(`mp 1 3 ${pd} `);
+  await telnet.write(`mp3 1 ${ps1} ${ps2} ${pd} `);
   res.sendStatus(201);
 });
 
@@ -110,11 +103,7 @@ if (process.env.TYPE !== 'exe') {
     inOperation();
     await setAnalyzer(150);
     if (type === 'auto') {
-      await telnet.write(`mp 0 1 0 `);
-      await telnet.write(`mp 0 2 0 `);
-      await telnet.write(`mp 0 3 0 `);
-      await telnet.write(`ac1 1`);
-      await telnet.write(`pc1 1`);
+      await telnet.write(`mp3 0`);
     }
     const points = await genRandomPoints(
       freqLow,
@@ -145,9 +134,6 @@ if (process.env.TYPE !== 'exe') {
     await moku.setPoint(+frequency, +amplitude, +phase);
 
     await ms(10);
-    await applyTable('fine');
-
-    await ms(10);
     const power = await getPower();
     await resetAnalyzer();
     outOperation();
@@ -161,6 +147,7 @@ if (process.env.TYPE !== 'exe') {
       return;
     }
     inOperation();
+    // await optimizeFrequency(+frequency + 2.5, ampLow, ampHigh, phaseLow, phaseHigh, usingTable || usingTable);
     await optimizeFrequency(frequency, ampLow, ampHigh, phaseLow, phaseHigh, usingTable || usingTable);
     outOperation();
     res.sendStatus(201);
@@ -174,6 +161,7 @@ if (process.env.TYPE !== 'exe') {
     }
     inOperation();
     await asyncLoop(frequencyLow, frequencyHigh, 5, async frequency => {
+      // await optimizeFrequency(+frequency + 2.5, ampLow, ampHigh, phaseLow, phaseHigh, usingTable || usingTable);
       await optimizeFrequency(frequency, ampLow, ampHigh, phaseLow, phaseHigh, usingTable || usingTable);
     });
     outOperation();

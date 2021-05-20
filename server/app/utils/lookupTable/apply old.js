@@ -7,7 +7,7 @@ const { getTableFrequency } = require('../global');
  * type = fine
  */
 module.exports = async (type, usingTable, prevAmp, prevPhase) => {
-  const { amp, phase } = await telnet.parseGlobalStat();
+  const { amp, phase } = await telnet.getAmpPhaseCodes();
   const frequency = getTableFrequency();
   if (prevAmp && prevPhase && Math.abs(amp - prevAmp) < 3 && Math.abs(phase - prevPhase) < 3) {
     return { amp: prevAmp, phase: prevPhase };
@@ -56,7 +56,7 @@ module.exports = async (type, usingTable, prevAmp, prevPhase) => {
       else otherCorner[4] -= 6450;
     }
     if (
-      true
+      true // eslint-disable-line
       /*
       Math.abs(closest[5] - otherCorner[5]) > 25 ||
       Math.abs(closest[6] - otherCorner[6]) > 25

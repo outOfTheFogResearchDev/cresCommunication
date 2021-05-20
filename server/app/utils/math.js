@@ -26,7 +26,8 @@ module.exports = {
           return {
             to: h => {
               const high = h * multiplier;
-              return (Math.floor(Math.random() * (high - low + 1)) + low) / multiplier;
+              const offByOne = high < 0 && low < 0 ? -1 : 1;
+              return (Math.floor(Math.random() * (high - low + offByOne)) + low) / multiplier;
             },
           };
         },
@@ -34,5 +35,9 @@ module.exports = {
     },
   },
   asyncLoop,
-  twoDMin: (twoDArray, index) => min(twoDArray.reduce((mins, array) => mins.concat([min(array, index)]), []), index),
+  twoDMin: (twoDArray, index) =>
+    min(
+      twoDArray.reduce((mins, array) => mins.concat([min(array, index)]), []),
+      index
+    ),
 };
