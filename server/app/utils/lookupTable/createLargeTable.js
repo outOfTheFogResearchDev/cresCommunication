@@ -13,7 +13,7 @@ module.exports = async (frequency, ampStep = 10, phaseStep = 30) => {
   } catch (e) {
     await mkdir(lookupTableLocation);
   }
-  await writeFile(largeLookupTable(frequency), []);
+  await writeFile(largeLookupTable(frequency), '');
   const table = await readTable(`${__dirname}/local/${frequency}_MHz.csv`);
   await asyncLoop(850, 2150, ampStep, async i => {
     await asyncLoop(0, 6600, phaseStep, async j => {

@@ -68,7 +68,7 @@ api.post('/software', async (req, res) => {
 
 api.post('/firmware', async (req, res) => {
   await stopPolling();
-  await telnet.write(`mp3 0`);
+  await telnet.write(`mp3 0 `);
   res.sendStatus(201);
 });
 
@@ -103,7 +103,7 @@ if (process.env.TYPE !== 'exe') {
     inOperation();
     await setAnalyzer(150);
     if (type === 'auto') {
-      await telnet.write(`mp3 0`);
+      await telnet.write(`mp3 0 `);
     }
     const points = await genRandomPoints(
       freqLow,
