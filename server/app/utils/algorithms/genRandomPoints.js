@@ -15,7 +15,7 @@ const getPoint = async (frequency, power, degrees, type) => {
   } else {
     await telnet.setFreq(frequency);
   }
-  await ms(10);
+  await ms(100);
   return getPower();
 };
 

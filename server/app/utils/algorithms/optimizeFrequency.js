@@ -1,8 +1,11 @@
 const optimizePoint = require('./optimizePoint');
+const optimizePointTimer = require('./optimizePointTimer');
 const { setAnalyzer, resetAnalyzer } = require('../cpp');
 const { asyncLoop } = require('../math');
-const { ms } = require('../time');
+const { ms, clock, clockStart, clockPrint } = require('../time');
 const { storeOptimize, concatCsv } = require('../csv');
+
+const timer = false;
 
 const Stage = {
   value: -1,
@@ -37,6 +40,11 @@ module.exports = async (frequency, ampLow, ampHigh, phaseLow, phaseHigh) => {
     let point = [];
     // let collectPreviousPowerPoint = true;
     const newPower = false;
+
+    if (timer) {
+      clockStart();
+    }
+
     await asyncLoop(phaseLow, phaseHigh, 5, async j => {
       // if (newPower && previousPowerPoint.length) {
       //   point = previousPowerPoint;
@@ -53,7 +61,11 @@ module.exports = async (frequency, ampLow, ampHigh, phaseLow, phaseHigh) => {
       //   }
       // }
 
-      point = await optimizePoint(frequency, i, j, point, Stage, newPower);
+      if (timer) {
+        point = await optimizePointTimer(frequency, i, j, point, Stage, newPower);
+      } else {
+        point = await optimizePoint(frequency, i, j, point, Stage, newPower);
+      }
 
       // if (collectPreviousPowerPoint) {
       //   collectPreviousPowerPoint = false;
@@ -63,6 +75,11 @@ module.exports = async (frequency, ampLow, ampHigh, phaseLow, phaseHigh) => {
 
       await storeOptimize([point], frequency, i, j);
     });
+
+    if (timer) {
+      clock('code');
+      clockPrint();
+    }
   });
   await ms(1000);
   await concatCsv();
