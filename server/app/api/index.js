@@ -84,17 +84,7 @@ if (process.env.TYPE !== 'exe') {
    * type = table
    */
   api.post('/gen_points/:type', async (req, res) => {
-    const {
-      freqLow,
-      freqHigh,
-      ampLow,
-      ampHigh,
-      phaseLow,
-      phaseHigh,
-      pointsQuantity,
-      type: tableType,
-      fails,
-    } = req.body;
+    const { freqLow, freqHigh, ampLow, ampHigh, phaseLow, phaseHigh, pointsQuantity } = req.body;
     const { type } = req.params;
     if (getOperating()) {
       res.sendStatus(201);
@@ -105,18 +95,7 @@ if (process.env.TYPE !== 'exe') {
     if (type === 'auto') {
       await telnet.write(`mp3 0 `);
     }
-    const points = await genRandomPoints(
-      freqLow,
-      freqHigh,
-      ampLow,
-      ampHigh,
-      phaseLow,
-      phaseHigh,
-      pointsQuantity,
-      type,
-      tableType,
-      fails
-    );
+    const points = await genRandomPoints(freqLow, freqHigh, ampLow, ampHigh, phaseLow, phaseHigh, pointsQuantity, type);
     await resetAnalyzer();
     await storePoints(points);
     outOperation();
